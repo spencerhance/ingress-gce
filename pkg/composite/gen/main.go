@@ -145,8 +145,13 @@ func populateApiServices() {
 	var result map[string]interface{}
 	json.Unmarshal([]byte(byteValue), &result)
 
+	// Queue of ApiService names for BFS
 	typesQueue := []string{}
+
+	// Set of already parsed ApiService names for BFS
 	completed := sets.String{}
+
+	// Go type of the property
 	var propType string
 
 	keys := []string{}
@@ -164,7 +169,10 @@ func populateApiServices() {
 		}
 		completed.Insert(typeName)
 
-		fields, ok := result["schemas"].(map[string]interface{})[typeName].(map[string]interface{})["properties"].(map[string]interface{})
+		fields, ok := result["schemas"].
+			(map[string]interface{})[typeName].
+			(map[string]interface{})["properties"].
+			(map[string]interface{})
 		if !ok {
 			panic(fmt.Errorf("Unable to parse type: %s", typeName))
 		}
