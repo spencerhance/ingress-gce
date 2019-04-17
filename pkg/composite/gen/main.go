@@ -14,7 +14,7 @@ limitations under the License.
 // Generator for GCE compute wrapper code. You must regenerate the code after
 // modifying this file:
 //
-//   $ go run gen/main.go
+//   $ ./hack/update_codegen.sh
 
 package main
 
@@ -38,7 +38,7 @@ const (
 	gofmt = "gofmt"
 
 	// This assumes that alpha contains a superset of all struct fields
-	apiFilePath = "../../vendor/google.golang.org/api/compute/v0.alpha/compute-api.json"
+	apiFilePath = "./vendor/google.golang.org/api/compute/v0.alpha/compute-api.json"
 )
 
 // MainServices describes all of the API types that we want to define all the helper functions for
@@ -658,11 +658,11 @@ func main() {
 	genTests(testOut)
 
 	var err error
-	err = ioutil.WriteFile("composite.go", []byte(gofmtContent(out)), 0644)
+	err = ioutil.WriteFile("./pkg/composite/composite.go", []byte(gofmtContent(out)), 0644)
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile("composite_test.go", []byte(gofmtContent(testOut)), 0644)
+	err = ioutil.WriteFile("./pkg/composite/composite_test.go", []byte(gofmtContent(testOut)), 0644)
 	if err != nil {
 		panic(err)
 	}
