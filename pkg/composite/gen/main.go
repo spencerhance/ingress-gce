@@ -356,7 +356,7 @@ func genTypes(wr io.Writer) {
 			// Version keeps track of the intended compute version for this {{.Name}}.
 			// Note that the compute API's do not contain this field. It is for our
 			// own bookkeeping purposes.
-			Version meta.Version
+			Version meta.Version {{$backtick}}json:"-"{{$backtick}}
 		{{- end}}
 
 		{{- range .Fields}}

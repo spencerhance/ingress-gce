@@ -53,7 +53,7 @@ type BackendService struct {
 	// Version keeps track of the intended compute version for this BackendService.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
+	Version                  meta.Version                        `json:"-"`
 	AffinityCookieTtlSec     int64                               `json:"affinityCookieTtlSec,omitempty"`
 	AppEngineBackend         *BackendServiceAppEngineBackend     `json:"appEngineBackend,omitempty"`
 	Backends                 []*Backend                          `json:"backends,omitempty"`
@@ -163,7 +163,7 @@ type ForwardingRule struct {
 	// Version keeps track of the intended compute version for this ForwardingRule.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
+	Version                  meta.Version      `json:"-"`
 	AllPorts                 bool              `json:"allPorts,omitempty"`
 	AllowGlobalAccess        bool              `json:"allowGlobalAccess,omitempty"`
 	BackendService           string            `json:"backendService,omitempty"`
@@ -208,20 +208,20 @@ type HttpHealthCheck struct {
 	// Version keeps track of the intended compute version for this HttpHealthCheck.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
-	CheckIntervalSec         int64  `json:"checkIntervalSec,omitempty"`
-	CreationTimestamp        string `json:"creationTimestamp,omitempty"`
-	Description              string `json:"description,omitempty"`
-	HealthyThreshold         int64  `json:"healthyThreshold,omitempty"`
-	Host                     string `json:"host,omitempty"`
-	Id                       uint64 `json:"id,omitempty,string"`
-	Kind                     string `json:"kind,omitempty"`
-	Name                     string `json:"name,omitempty"`
-	Port                     int64  `json:"port,omitempty"`
-	RequestPath              string `json:"requestPath,omitempty"`
-	SelfLink                 string `json:"selfLink,omitempty"`
-	TimeoutSec               int64  `json:"timeoutSec,omitempty"`
-	UnhealthyThreshold       int64  `json:"unhealthyThreshold,omitempty"`
+	Version                  meta.Version `json:"-"`
+	CheckIntervalSec         int64        `json:"checkIntervalSec,omitempty"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	HealthyThreshold         int64        `json:"healthyThreshold,omitempty"`
+	Host                     string       `json:"host,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	Port                     int64        `json:"port,omitempty"`
+	RequestPath              string       `json:"requestPath,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	TimeoutSec               int64        `json:"timeoutSec,omitempty"`
+	UnhealthyThreshold       int64        `json:"unhealthyThreshold,omitempty"`
 	googleapi.ServerResponse `json:"-"`
 	ForceSendFields          []string `json:"-"`
 	NullFields               []string `json:"-"`
@@ -232,20 +232,20 @@ type HttpsHealthCheck struct {
 	// Version keeps track of the intended compute version for this HttpsHealthCheck.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
-	CheckIntervalSec         int64  `json:"checkIntervalSec,omitempty"`
-	CreationTimestamp        string `json:"creationTimestamp,omitempty"`
-	Description              string `json:"description,omitempty"`
-	HealthyThreshold         int64  `json:"healthyThreshold,omitempty"`
-	Host                     string `json:"host,omitempty"`
-	Id                       uint64 `json:"id,omitempty,string"`
-	Kind                     string `json:"kind,omitempty"`
-	Name                     string `json:"name,omitempty"`
-	Port                     int64  `json:"port,omitempty"`
-	RequestPath              string `json:"requestPath,omitempty"`
-	SelfLink                 string `json:"selfLink,omitempty"`
-	TimeoutSec               int64  `json:"timeoutSec,omitempty"`
-	UnhealthyThreshold       int64  `json:"unhealthyThreshold,omitempty"`
+	Version                  meta.Version `json:"-"`
+	CheckIntervalSec         int64        `json:"checkIntervalSec,omitempty"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	HealthyThreshold         int64        `json:"healthyThreshold,omitempty"`
+	Host                     string       `json:"host,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	Port                     int64        `json:"port,omitempty"`
+	RequestPath              string       `json:"requestPath,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	TimeoutSec               int64        `json:"timeoutSec,omitempty"`
+	UnhealthyThreshold       int64        `json:"unhealthyThreshold,omitempty"`
 	googleapi.ServerResponse `json:"-"`
 	ForceSendFields          []string `json:"-"`
 	NullFields               []string `json:"-"`
@@ -274,15 +274,15 @@ type TargetHttpProxy struct {
 	// Version keeps track of the intended compute version for this TargetHttpProxy.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
-	CreationTimestamp        string `json:"creationTimestamp,omitempty"`
-	Description              string `json:"description,omitempty"`
-	Id                       uint64 `json:"id,omitempty,string"`
-	Kind                     string `json:"kind,omitempty"`
-	Name                     string `json:"name,omitempty"`
-	Region                   string `json:"region,omitempty"`
-	SelfLink                 string `json:"selfLink,omitempty"`
-	UrlMap                   string `json:"urlMap,omitempty"`
+	Version                  meta.Version `json:"-"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	Region                   string       `json:"region,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	UrlMap                   string       `json:"urlMap,omitempty"`
 	googleapi.ServerResponse `json:"-"`
 	ForceSendFields          []string `json:"-"`
 	NullFields               []string `json:"-"`
@@ -293,18 +293,18 @@ type TargetHttpsProxy struct {
 	// Version keeps track of the intended compute version for this TargetHttpsProxy.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
-	CreationTimestamp        string   `json:"creationTimestamp,omitempty"`
-	Description              string   `json:"description,omitempty"`
-	Id                       uint64   `json:"id,omitempty,string"`
-	Kind                     string   `json:"kind,omitempty"`
-	Name                     string   `json:"name,omitempty"`
-	QuicOverride             string   `json:"quicOverride,omitempty"`
-	Region                   string   `json:"region,omitempty"`
-	SelfLink                 string   `json:"selfLink,omitempty"`
-	SslCertificates          []string `json:"sslCertificates,omitempty"`
-	SslPolicy                string   `json:"sslPolicy,omitempty"`
-	UrlMap                   string   `json:"urlMap,omitempty"`
+	Version                  meta.Version `json:"-"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	QuicOverride             string       `json:"quicOverride,omitempty"`
+	Region                   string       `json:"region,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	SslCertificates          []string     `json:"sslCertificates,omitempty"`
+	SslPolicy                string       `json:"sslPolicy,omitempty"`
+	UrlMap                   string       `json:"urlMap,omitempty"`
 	googleapi.ServerResponse `json:"-"`
 	ForceSendFields          []string `json:"-"`
 	NullFields               []string `json:"-"`
@@ -315,7 +315,7 @@ type UrlMap struct {
 	// Version keeps track of the intended compute version for this UrlMap.
 	// Note that the compute API's do not contain this field. It is for our
 	// own bookkeeping purposes.
-	Version                  meta.Version
+	Version                  meta.Version   `json:"-"`
 	CreationTimestamp        string         `json:"creationTimestamp,omitempty"`
 	DefaultService           string         `json:"defaultService,omitempty"`
 	Description              string         `json:"description,omitempty"`
