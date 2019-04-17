@@ -387,6 +387,7 @@ func genTypes(wr io.Writer) {
 }
 
 // genFuncs() generates all of the struct methods
+// TODO: (shance) generated CRUD functions should take a meta.Key object to allow easier use of global and regional resources
 func genFuncs(wr io.Writer) {
 	const text = `
 {{$All := .All}}
