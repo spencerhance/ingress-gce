@@ -44,14 +44,17 @@ const (
 // MainServices describes all of the API types that we want to define all the helper functions for
 // The other types that are discovered as dependencies will simply be wrapped with a composite struct
 // The format of the map is ServiceName -> k8s-cloud-provider wrapper name
+// TODO: (shance) Add the commented services and remove dependency on first cloud-provider layer
 var MainServices = map[string]string{
 	"BackendService":   "BackendServices",
+	/*
 	"ForwardingRule":   "ForwardingRules",
 	"HttpHealthCheck":  "HttpHealthChecks",
 	"HttpsHealthCheck": "HttpsHealthChecks",
 	"UrlMap":           "UrlMaps",
 	"TargetHttpProxy":  "TargetHttpProxies",
 	"TargetHttpsProxy": "TargetHttpsProxies",
+	*/
 }
 
 // TODO: (shance) Replace this with data gathered from meta.AllServices
