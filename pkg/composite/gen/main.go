@@ -46,14 +46,14 @@ const (
 // The format of the map is ServiceName -> k8s-cloud-provider wrapper name
 // TODO: (shance) Add the commented services and remove dependency on first cloud-provider layer
 var MainServices = map[string]string{
-	"BackendService":   "BackendServices",
+	"BackendService": "BackendServices",
 	/*
-	"ForwardingRule":   "ForwardingRules",
-	"HttpHealthCheck":  "HttpHealthChecks",
-	"HttpsHealthCheck": "HttpsHealthChecks",
-	"UrlMap":           "UrlMaps",
-	"TargetHttpProxy":  "TargetHttpProxies",
-	"TargetHttpsProxy": "TargetHttpsProxies",
+		"ForwardingRule":   "ForwardingRules",
+		"HttpHealthCheck":  "HttpHealthChecks",
+		"HttpsHealthCheck": "HttpsHealthChecks",
+		"UrlMap":           "UrlMaps",
+		"TargetHttpProxy":  "TargetHttpProxies",
+		"TargetHttpsProxy": "TargetHttpsProxies",
 	*/
 }
 
@@ -172,10 +172,7 @@ func populateApiServices() {
 		}
 		completed.Insert(typeName)
 
-		fields, ok := result["schemas"].
-			(map[string]interface{})[typeName].
-			(map[string]interface{})["properties"].
-			(map[string]interface{})
+		fields, ok := result["schemas"].(map[string]interface{})[typeName].(map[string]interface{})["properties"].(map[string]interface{})
 		if !ok {
 			panic(fmt.Errorf("Unable to parse type: %s", typeName))
 		}
@@ -663,7 +660,7 @@ func Test{{.Name}}(t *testing.T) {
 {{- end}}
 `
 	data := struct {
-		All []ApiService
+		All      []ApiService
 		Versions map[string]string
 	}{AllApiServices, Versions}
 
