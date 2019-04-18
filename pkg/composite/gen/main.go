@@ -1,5 +1,5 @@
 /*
-Copyright 2018 Google LLC
+Copyright 2019 The Kubernetes Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -584,8 +584,8 @@ func typeEquality(t1, t2 reflect.Type) error {
 			func Test{{.Name}}(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf({{.Name}}{})
+	alphaType := reflect.TypeOf(computealpha.{{.Name}}{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1

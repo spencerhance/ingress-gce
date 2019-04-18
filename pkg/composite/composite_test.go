@@ -73,8 +73,8 @@ func TestBackend(t *testing.T) {
 func TestBackendService(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(BackendService{})
+	alphaType := reflect.TypeOf(computealpha.BackendService{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
@@ -243,8 +243,8 @@ func TestHostRule(t *testing.T) {
 func TestHttpHealthCheck(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(HttpHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HttpHealthCheck{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
@@ -292,8 +292,8 @@ func TestToHttpHealthCheck(t *testing.T) {
 func TestHttpsHealthCheck(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(HttpsHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HttpsHealthCheck{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
@@ -357,8 +357,8 @@ func TestPathRule(t *testing.T) {
 func TestTargetHttpProxy(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(TargetHttpProxy{})
+	alphaType := reflect.TypeOf(computealpha.TargetHttpProxy{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
@@ -406,8 +406,8 @@ func TestToTargetHttpProxy(t *testing.T) {
 func TestTargetHttpsProxy(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(TargetHttpsProxy{})
+	alphaType := reflect.TypeOf(computealpha.TargetHttpsProxy{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
@@ -455,8 +455,8 @@ func TestToTargetHttpsProxy(t *testing.T) {
 func TestUrlMap(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
 	// same fields as the alpha type.
-	compositeType := reflect.TypeOf(ForwardingRule{})
-	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+	compositeType := reflect.TypeOf(UrlMap{})
+	alphaType := reflect.TypeOf(computealpha.UrlMap{})
 
 	// For the composite type, remove the Version field from consideration
 	compositeTypeNumFields := compositeType.NumField() - 1
