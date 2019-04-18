@@ -120,6 +120,43 @@ func TestToBackendService(t *testing.T) {
 	}
 }
 
+func TestBackendServiceToAlpha(t *testing.T) {
+	composite := BackendService{}
+	expected := &computealpha.BackendService{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("BackendService.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("BackendService.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestBackendServiceToBeta(t *testing.T) {
+	composite := BackendService{}
+	expected := &computebeta.BackendService{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("BackendService.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("BackendService.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestBackendServiceToGA(t *testing.T) {
+	composite := BackendService{}
+	expected := &compute.BackendService{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("BackendService.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("BackendService.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+
 func TestBackendServiceAppEngineBackend(t *testing.T) {
 	compositeType := reflect.TypeOf(BackendServiceAppEngineBackend{})
 	alphaType := reflect.TypeOf(computealpha.BackendServiceAppEngineBackend{})

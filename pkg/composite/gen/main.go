@@ -582,7 +582,8 @@ func typeEquality(t1, t2 reflect.Type) error {
 	return nil
 }
 
-{{- range .All}}
+{{ $All := .All}}
+{{range $type := $All}}
 		{{- if .IsMainService}}
 			func Test{{.Name}}(t *testing.T) {
 	// Use reflection to verify that our composite type contains all the
@@ -634,6 +635,21 @@ func TestTo{{.Name}}(t *testing.T) {
 	}
 }
 
+{{range $version, $extension := $.Versions}}
+func Test{{$type.Name}}To{{$version}}(t *testing.T) {
+	composite := {{$type.Name}}{}
+	expected := &compute{{$extension}}.{{$type.Name}}{}
+	result, err := composite.to{{$version}}()
+	if err != nil {
+		t.Fatalf("{{$type.Name}}.to{{$version}}() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("{{$type.Name}}.to{{$version}}() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+{{- end}}
+
 {{- else}}
 
 func Test{{.Name}}(t *testing.T) {
@@ -648,9 +664,14 @@ func Test{{.Name}}(t *testing.T) {
 `
 	data := struct {
 		All []ApiService
-	}{AllApiServices}
+		Versions map[string]string
+	}{AllApiServices, Versions}
 
-	tmpl := template.Must(template.New("tests").Parse(text))
+	funcMap := template.FuncMap{
+		"ToLower": strings.ToLower,
+	}
+
+	tmpl := template.Must(template.New("tests").Funcs(funcMap).Parse(text))
 	if err := tmpl.Execute(wr, data); err != nil {
 		panic(err)
 	}
