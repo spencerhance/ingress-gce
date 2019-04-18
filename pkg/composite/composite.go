@@ -27,6 +27,7 @@ import (
 	computebeta "google.golang.org/api/compute/v0.beta"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
+	"k8s.io/ingress-gce/pkg/composite/metrics"
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
 )
 
@@ -158,9 +159,249 @@ type ConnectionDraining struct {
 	NullFields         []string `json:"-"`
 }
 
-func CreateBackendService(backendService *BackendService, cloud *gce.Cloud) error {
+// ForwardingRule is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type ForwardingRule struct {
+	// Version keeps track of the intended compute version for this ForwardingRule.
+	// Note that the compute API's do not contain this field. It is for our
+	// own bookkeeping purposes.
+	Version                  meta.Version      `json:"-"`
+	AllPorts                 bool              `json:"allPorts,omitempty"`
+	AllowGlobalAccess        bool              `json:"allowGlobalAccess,omitempty"`
+	BackendService           string            `json:"backendService,omitempty"`
+	CreationTimestamp        string            `json:"creationTimestamp,omitempty"`
+	Description              string            `json:"description,omitempty"`
+	Fingerprint              string            `json:"fingerprint,omitempty"`
+	IPAddress                string            `json:"IPAddress,omitempty"`
+	IPProtocol               string            `json:"IPProtocol,omitempty"`
+	Id                       uint64            `json:"id,omitempty,string"`
+	IpVersion                string            `json:"ipVersion,omitempty"`
+	Kind                     string            `json:"kind,omitempty"`
+	LabelFingerprint         string            `json:"labelFingerprint,omitempty"`
+	Labels                   map[string]string `json:"labels,omitempty"`
+	LoadBalancingScheme      string            `json:"loadBalancingScheme,omitempty"`
+	Name                     string            `json:"name,omitempty"`
+	Network                  string            `json:"network,omitempty"`
+	NetworkTier              string            `json:"networkTier,omitempty"`
+	PortRange                string            `json:"portRange,omitempty"`
+	Ports                    []string          `json:"ports,omitempty"`
+	Region                   string            `json:"region,omitempty"`
+	SelfLink                 string            `json:"selfLink,omitempty"`
+	ServiceLabel             string            `json:"serviceLabel,omitempty"`
+	ServiceName              string            `json:"serviceName,omitempty"`
+	Subnetwork               string            `json:"subnetwork,omitempty"`
+	Target                   string            `json:"target,omitempty"`
+	googleapi.ServerResponse `json:"-"`
+	ForceSendFields          []string `json:"-"`
+	NullFields               []string `json:"-"`
+}
+
+// HTTP2HealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type HTTP2HealthCheck struct {
+	Host              string   `json:"host,omitempty"`
+	Port              int64    `json:"port,omitempty"`
+	PortName          string   `json:"portName,omitempty"`
+	PortSpecification string   `json:"portSpecification,omitempty"`
+	ProxyHeader       string   `json:"proxyHeader,omitempty"`
+	RequestPath       string   `json:"requestPath,omitempty"`
+	Response          string   `json:"response,omitempty"`
+	ForceSendFields   []string `json:"-"`
+	NullFields        []string `json:"-"`
+}
+
+// HTTPHealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type HTTPHealthCheck struct {
+	Host              string   `json:"host,omitempty"`
+	Port              int64    `json:"port,omitempty"`
+	PortName          string   `json:"portName,omitempty"`
+	PortSpecification string   `json:"portSpecification,omitempty"`
+	ProxyHeader       string   `json:"proxyHeader,omitempty"`
+	RequestPath       string   `json:"requestPath,omitempty"`
+	Response          string   `json:"response,omitempty"`
+	ForceSendFields   []string `json:"-"`
+	NullFields        []string `json:"-"`
+}
+
+// HTTPSHealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type HTTPSHealthCheck struct {
+	Host              string   `json:"host,omitempty"`
+	Port              int64    `json:"port,omitempty"`
+	PortName          string   `json:"portName,omitempty"`
+	PortSpecification string   `json:"portSpecification,omitempty"`
+	ProxyHeader       string   `json:"proxyHeader,omitempty"`
+	RequestPath       string   `json:"requestPath,omitempty"`
+	Response          string   `json:"response,omitempty"`
+	ForceSendFields   []string `json:"-"`
+	NullFields        []string `json:"-"`
+}
+
+// HealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type HealthCheck struct {
+	// Version keeps track of the intended compute version for this HealthCheck.
+	// Note that the compute API's do not contain this field. It is for our
+	// own bookkeeping purposes.
+	Version                  meta.Version      `json:"-"`
+	CheckIntervalSec         int64             `json:"checkIntervalSec,omitempty"`
+	CreationTimestamp        string            `json:"creationTimestamp,omitempty"`
+	Description              string            `json:"description,omitempty"`
+	HealthyThreshold         int64             `json:"healthyThreshold,omitempty"`
+	Http2HealthCheck         *HTTP2HealthCheck `json:"http2HealthCheck,omitempty"`
+	HttpHealthCheck          *HTTPHealthCheck  `json:"httpHealthCheck,omitempty"`
+	HttpsHealthCheck         *HTTPSHealthCheck `json:"httpsHealthCheck,omitempty"`
+	Id                       uint64            `json:"id,omitempty,string"`
+	Kind                     string            `json:"kind,omitempty"`
+	Name                     string            `json:"name,omitempty"`
+	Region                   string            `json:"region,omitempty"`
+	SelfLink                 string            `json:"selfLink,omitempty"`
+	SslHealthCheck           *SSLHealthCheck   `json:"sslHealthCheck,omitempty"`
+	TcpHealthCheck           *TCPHealthCheck   `json:"tcpHealthCheck,omitempty"`
+	TimeoutSec               int64             `json:"timeoutSec,omitempty"`
+	Type                     string            `json:"type,omitempty"`
+	UdpHealthCheck           *UDPHealthCheck   `json:"udpHealthCheck,omitempty"`
+	UnhealthyThreshold       int64             `json:"unhealthyThreshold,omitempty"`
+	googleapi.ServerResponse `json:"-"`
+	ForceSendFields          []string `json:"-"`
+	NullFields               []string `json:"-"`
+}
+
+// HostRule is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type HostRule struct {
+	Description     string   `json:"description,omitempty"`
+	Hosts           []string `json:"hosts,omitempty"`
+	PathMatcher     string   `json:"pathMatcher,omitempty"`
+	ForceSendFields []string `json:"-"`
+	NullFields      []string `json:"-"`
+}
+
+// PathMatcher is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type PathMatcher struct {
+	DefaultService  string      `json:"defaultService,omitempty"`
+	Description     string      `json:"description,omitempty"`
+	Name            string      `json:"name,omitempty"`
+	PathRules       []*PathRule `json:"pathRules,omitempty"`
+	ForceSendFields []string    `json:"-"`
+	NullFields      []string    `json:"-"`
+}
+
+// PathRule is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type PathRule struct {
+	Paths           []string `json:"paths,omitempty"`
+	Service         string   `json:"service,omitempty"`
+	ForceSendFields []string `json:"-"`
+	NullFields      []string `json:"-"`
+}
+
+// SSLHealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type SSLHealthCheck struct {
+	Port              int64    `json:"port,omitempty"`
+	PortName          string   `json:"portName,omitempty"`
+	PortSpecification string   `json:"portSpecification,omitempty"`
+	ProxyHeader       string   `json:"proxyHeader,omitempty"`
+	Request           string   `json:"request,omitempty"`
+	Response          string   `json:"response,omitempty"`
+	ForceSendFields   []string `json:"-"`
+	NullFields        []string `json:"-"`
+}
+
+// TCPHealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type TCPHealthCheck struct {
+	Port              int64    `json:"port,omitempty"`
+	PortName          string   `json:"portName,omitempty"`
+	PortSpecification string   `json:"portSpecification,omitempty"`
+	ProxyHeader       string   `json:"proxyHeader,omitempty"`
+	Request           string   `json:"request,omitempty"`
+	Response          string   `json:"response,omitempty"`
+	ForceSendFields   []string `json:"-"`
+	NullFields        []string `json:"-"`
+}
+
+// TargetHttpProxy is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type TargetHttpProxy struct {
+	// Version keeps track of the intended compute version for this TargetHttpProxy.
+	// Note that the compute API's do not contain this field. It is for our
+	// own bookkeeping purposes.
+	Version                  meta.Version `json:"-"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	Region                   string       `json:"region,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	UrlMap                   string       `json:"urlMap,omitempty"`
+	googleapi.ServerResponse `json:"-"`
+	ForceSendFields          []string `json:"-"`
+	NullFields               []string `json:"-"`
+}
+
+// TargetHttpsProxy is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type TargetHttpsProxy struct {
+	// Version keeps track of the intended compute version for this TargetHttpsProxy.
+	// Note that the compute API's do not contain this field. It is for our
+	// own bookkeeping purposes.
+	Version                  meta.Version `json:"-"`
+	CreationTimestamp        string       `json:"creationTimestamp,omitempty"`
+	Description              string       `json:"description,omitempty"`
+	Id                       uint64       `json:"id,omitempty,string"`
+	Kind                     string       `json:"kind,omitempty"`
+	Name                     string       `json:"name,omitempty"`
+	QuicOverride             string       `json:"quicOverride,omitempty"`
+	Region                   string       `json:"region,omitempty"`
+	SelfLink                 string       `json:"selfLink,omitempty"`
+	SslCertificates          []string     `json:"sslCertificates,omitempty"`
+	SslPolicy                string       `json:"sslPolicy,omitempty"`
+	UrlMap                   string       `json:"urlMap,omitempty"`
+	googleapi.ServerResponse `json:"-"`
+	ForceSendFields          []string `json:"-"`
+	NullFields               []string `json:"-"`
+}
+
+// UDPHealthCheck is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type UDPHealthCheck struct {
+	Port            int64    `json:"port,omitempty"`
+	PortName        string   `json:"portName,omitempty"`
+	Request         string   `json:"request,omitempty"`
+	Response        string   `json:"response,omitempty"`
+	ForceSendFields []string `json:"-"`
+	NullFields      []string `json:"-"`
+}
+
+// UrlMap is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type UrlMap struct {
+	// Version keeps track of the intended compute version for this UrlMap.
+	// Note that the compute API's do not contain this field. It is for our
+	// own bookkeeping purposes.
+	Version                  meta.Version   `json:"-"`
+	CreationTimestamp        string         `json:"creationTimestamp,omitempty"`
+	DefaultService           string         `json:"defaultService,omitempty"`
+	Description              string         `json:"description,omitempty"`
+	Fingerprint              string         `json:"fingerprint,omitempty"`
+	HostRules                []*HostRule    `json:"hostRules,omitempty"`
+	Id                       uint64         `json:"id,omitempty,string"`
+	Kind                     string         `json:"kind,omitempty"`
+	Name                     string         `json:"name,omitempty"`
+	PathMatchers             []*PathMatcher `json:"pathMatchers,omitempty"`
+	Region                   string         `json:"region,omitempty"`
+	SelfLink                 string         `json:"selfLink,omitempty"`
+	Tests                    []*UrlMapTest  `json:"tests,omitempty"`
+	googleapi.ServerResponse `json:"-"`
+	ForceSendFields          []string `json:"-"`
+	NullFields               []string `json:"-"`
+}
+
+// UrlMapTest is a composite type wrapping the Alpha, Beta, and GA methods for its GCE equivalent
+type UrlMapTest struct {
+	Description     string   `json:"description,omitempty"`
+	Host            string   `json:"host,omitempty"`
+	Path            string   `json:"path,omitempty"`
+	Service         string   `json:"service,omitempty"`
+	ForceSendFields []string `json:"-"`
+	NullFields      []string `json:"-"`
+}
+
+func CreateBackendService(backendService *BackendService, cloud *gce.Cloud, key *meta.Key) error {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()
+	mc := composite.NewMetricContext("BackendService", "create", key.Region, key.Zone, string(backendService.Version))
 
 	switch backendService.Version {
 	case meta.VersionAlpha:
@@ -169,27 +410,33 @@ func CreateBackendService(backendService *BackendService, cloud *gce.Cloud) erro
 			return err
 		}
 		klog.V(3).Infof("Creating alpha BackendService %v", alpha.Name)
-		return cloud.Compute().AlphaBackendServices().Insert(ctx, meta.GlobalKey(backendService.Name), alpha)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionBackendServices().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaBackendServices().Insert(ctx, key, alpha))
+		}
 	case meta.VersionBeta:
 		beta, err := backendService.toBeta()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Creating beta BackendService %v", beta.Name)
-		return cloud.Compute().BetaBackendServices().Insert(ctx, meta.GlobalKey(backendService.Name), beta)
+		return mc.Observe(cloud.Compute().BetaBackendServices().Insert(ctx, key, beta))
 	default:
 		ga, err := backendService.toGA()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Creating ga BackendService %v", ga.Name)
-		return cloud.Compute().BackendServices().Insert(ctx, meta.GlobalKey(backendService.Name), ga)
+		return mc.Observe(cloud.Compute().BackendServices().Insert(ctx, key, ga))
 	}
 }
 
-func UpdateBackendService(backendService *BackendService, cloud *gce.Cloud) error {
+func UpdateBackendService(backendService *BackendService, cloud *gce.Cloud, key *meta.Key) error {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()
+	mc := composite.NewMetricContext("BackendService", "update", key.Region, key.Zone, string(backendService.Version))
 
 	switch backendService.Version {
 	case meta.VersionAlpha:
@@ -198,40 +445,51 @@ func UpdateBackendService(backendService *BackendService, cloud *gce.Cloud) erro
 			return err
 		}
 		klog.V(3).Infof("Updating alpha BackendService %v", alpha.Name)
-		return cloud.Compute().AlphaBackendServices().Update(ctx, meta.GlobalKey(backendService.Name), alpha)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionBackendServices().Update(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaBackendServices().Update(ctx, key, alpha))
+		}
 	case meta.VersionBeta:
 		beta, err := backendService.toBeta()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Updating beta BackendService %v", beta.Name)
-		return cloud.Compute().BetaBackendServices().Update(ctx, meta.GlobalKey(backendService.Name), beta)
+		return mc.Observe(cloud.Compute().BetaBackendServices().Update(ctx, key, beta))
 	default:
 		ga, err := backendService.toGA()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Updating ga BackendService %v", ga.Name)
-		return cloud.Compute().BackendServices().Update(ctx, meta.GlobalKey(backendService.Name), ga)
+		return mc.Observe(cloud.Compute().BackendServices().Update(ctx, key, ga))
 	}
 }
 
-func GetBackendService(name string, version meta.Version, cloud *gce.Cloud) (*BackendService, error) {
+func GetBackendService(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*BackendService, error) {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()
+	mc := composite.NewMetricContext("BackendService", "get", key.Region, key.Zone, string(version))
 
 	var gceObj interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		gceObj, err = cloud.Compute().AlphaBackendServices().Get(ctx, meta.GlobalKey(name))
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegionBackendServices().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaBackendServices().Get(ctx, key)
+		}
 	case meta.VersionBeta:
-		gceObj, err = cloud.Compute().BetaBackendServices().Get(ctx, meta.GlobalKey(name))
+		gceObj, err = cloud.Compute().BetaBackendServices().Get(ctx, key)
 	default:
-		gceObj, err = cloud.Compute().BackendServices().Get(ctx, meta.GlobalKey(name))
+		gceObj, err = cloud.Compute().BackendServices().Get(ctx, key)
 	}
 	if err != nil {
-		return nil, err
+		return nil, mc.Observe(err)
 	}
 	return toBackendService(gceObj)
 }
@@ -315,6 +573,716 @@ func (backendService *BackendService) toGA() (*compute.BackendService, error) {
 	}
 	if ga.Iap != nil {
 		ga.Iap.ForceSendFields = []string{"Enabled", "Oauth2ClientId", "Oauth2ClientSecret"}
+	}
+
+	return ga, nil
+}
+
+func CreateForwardingRule(forwardingRule *ForwardingRule, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("ForwardingRule", "create", key.Region, key.Zone, string(forwardingRule.Version))
+
+	switch forwardingRule.Version {
+	case meta.VersionAlpha:
+		alpha, err := forwardingRule.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha ForwardingRule %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaForwardingRules().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaGlobalForwardingRules().Insert(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := forwardingRule.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta ForwardingRule %v", beta.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().BetaForwardingRules().Insert(ctx, key, beta))
+		default:
+			return mc.Observe(cloud.Compute().BetaGlobalForwardingRules().Insert(ctx, key, beta))
+		}
+	default:
+		ga, err := forwardingRule.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga ForwardingRule %v", ga.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().ForwardingRules().Insert(ctx, key, ga))
+		default:
+			return mc.Observe(cloud.Compute().GlobalForwardingRules().Insert(ctx, key, ga))
+		}
+	}
+}
+
+func GetForwardingRule(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*ForwardingRule, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("ForwardingRule", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaForwardingRules().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaGlobalForwardingRules().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().BetaForwardingRules().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().BetaGlobalForwardingRules().Get(ctx, key)
+		}
+	default:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().ForwardingRules().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().GlobalForwardingRules().Get(ctx, key)
+		}
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return toForwardingRule(gceObj)
+}
+
+// toForwardingRule converts a compute alpha, beta or GA
+// ForwardingRule into our composite type.
+func toForwardingRule(obj interface{}) (*ForwardingRule, error) {
+	be := &ForwardingRule{}
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal object %+v to JSON: %v", obj, err)
+	}
+	err = json.Unmarshal(bytes, be)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling to ForwardingRule: %v", err)
+	}
+	return be, nil
+}
+
+// toAlpha converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (forwardingRule *ForwardingRule) toAlpha() (*computealpha.ForwardingRule, error) {
+	bytes, err := json.Marshal(forwardingRule)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling ForwardingRule to JSON: %v", err)
+	}
+	alpha := &computealpha.ForwardingRule{}
+	err = json.Unmarshal(bytes, alpha)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling ForwardingRule JSON to compute alpha type: %v", err)
+	}
+
+	return alpha, nil
+}
+
+// toBeta converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (forwardingRule *ForwardingRule) toBeta() (*computebeta.ForwardingRule, error) {
+	bytes, err := json.Marshal(forwardingRule)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling ForwardingRule to JSON: %v", err)
+	}
+	beta := &computebeta.ForwardingRule{}
+	err = json.Unmarshal(bytes, beta)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling ForwardingRule JSON to compute beta type: %v", err)
+	}
+
+	return beta, nil
+}
+
+// toGA converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (forwardingRule *ForwardingRule) toGA() (*compute.ForwardingRule, error) {
+	bytes, err := json.Marshal(forwardingRule)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling ForwardingRule to JSON: %v", err)
+	}
+	ga := &compute.ForwardingRule{}
+	err = json.Unmarshal(bytes, ga)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling ForwardingRule JSON to compute ga type: %v", err)
+	}
+
+	return ga, nil
+}
+
+func CreateHealthCheck(healthCheck *HealthCheck, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("HealthCheck", "create", key.Region, key.Zone, string(healthCheck.Version))
+
+	switch healthCheck.Version {
+	case meta.VersionAlpha:
+		alpha, err := healthCheck.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha HealthCheck %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionHealthChecks().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaHealthChecks().Insert(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := healthCheck.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta HealthCheck %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaHealthChecks().Insert(ctx, key, beta))
+	default:
+		ga, err := healthCheck.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga HealthCheck %v", ga.Name)
+		return mc.Observe(cloud.Compute().HealthChecks().Insert(ctx, key, ga))
+	}
+}
+
+func UpdateHealthCheck(healthCheck *HealthCheck, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("HealthCheck", "update", key.Region, key.Zone, string(healthCheck.Version))
+
+	switch healthCheck.Version {
+	case meta.VersionAlpha:
+		alpha, err := healthCheck.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating alpha HealthCheck %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionHealthChecks().Update(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaHealthChecks().Update(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := healthCheck.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating beta HealthCheck %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaHealthChecks().Update(ctx, key, beta))
+	default:
+		ga, err := healthCheck.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating ga HealthCheck %v", ga.Name)
+		return mc.Observe(cloud.Compute().HealthChecks().Update(ctx, key, ga))
+	}
+}
+
+func GetHealthCheck(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*HealthCheck, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("HealthCheck", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegionHealthChecks().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaHealthChecks().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		gceObj, err = cloud.Compute().BetaHealthChecks().Get(ctx, key)
+	default:
+		gceObj, err = cloud.Compute().HealthChecks().Get(ctx, key)
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return toHealthCheck(gceObj)
+}
+
+// toHealthCheck converts a compute alpha, beta or GA
+// HealthCheck into our composite type.
+func toHealthCheck(obj interface{}) (*HealthCheck, error) {
+	be := &HealthCheck{}
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal object %+v to JSON: %v", obj, err)
+	}
+	err = json.Unmarshal(bytes, be)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling to HealthCheck: %v", err)
+	}
+	return be, nil
+}
+
+// toAlpha converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (healthCheck *HealthCheck) toAlpha() (*computealpha.HealthCheck, error) {
+	bytes, err := json.Marshal(healthCheck)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling HealthCheck to JSON: %v", err)
+	}
+	alpha := &computealpha.HealthCheck{}
+	err = json.Unmarshal(bytes, alpha)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling HealthCheck JSON to compute alpha type: %v", err)
+	}
+
+	return alpha, nil
+}
+
+// toBeta converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (healthCheck *HealthCheck) toBeta() (*computebeta.HealthCheck, error) {
+	bytes, err := json.Marshal(healthCheck)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling HealthCheck to JSON: %v", err)
+	}
+	beta := &computebeta.HealthCheck{}
+	err = json.Unmarshal(bytes, beta)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling HealthCheck JSON to compute beta type: %v", err)
+	}
+
+	return beta, nil
+}
+
+// toGA converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (healthCheck *HealthCheck) toGA() (*compute.HealthCheck, error) {
+	bytes, err := json.Marshal(healthCheck)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling HealthCheck to JSON: %v", err)
+	}
+	ga := &compute.HealthCheck{}
+	err = json.Unmarshal(bytes, ga)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling HealthCheck JSON to compute ga type: %v", err)
+	}
+
+	return ga, nil
+}
+
+func CreateTargetHttpProxy(targetHttpProxy *TargetHttpProxy, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("TargetHttpProxy", "create", key.Region, key.Zone, string(targetHttpProxy.Version))
+
+	switch targetHttpProxy.Version {
+	case meta.VersionAlpha:
+		alpha, err := targetHttpProxy.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha TargetHttpProxy %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionTargetHttpProxies().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaTargetHttpProxies().Insert(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := targetHttpProxy.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta TargetHttpProxy %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaTargetHttpProxies().Insert(ctx, key, beta))
+	default:
+		ga, err := targetHttpProxy.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga TargetHttpProxy %v", ga.Name)
+		return mc.Observe(cloud.Compute().TargetHttpProxies().Insert(ctx, key, ga))
+	}
+}
+
+func GetTargetHttpProxy(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*TargetHttpProxy, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("TargetHttpProxy", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegionTargetHttpProxies().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaTargetHttpProxies().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		gceObj, err = cloud.Compute().BetaTargetHttpProxies().Get(ctx, key)
+	default:
+		gceObj, err = cloud.Compute().TargetHttpProxies().Get(ctx, key)
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return toTargetHttpProxy(gceObj)
+}
+
+// toTargetHttpProxy converts a compute alpha, beta or GA
+// TargetHttpProxy into our composite type.
+func toTargetHttpProxy(obj interface{}) (*TargetHttpProxy, error) {
+	be := &TargetHttpProxy{}
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal object %+v to JSON: %v", obj, err)
+	}
+	err = json.Unmarshal(bytes, be)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling to TargetHttpProxy: %v", err)
+	}
+	return be, nil
+}
+
+// toAlpha converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpProxy *TargetHttpProxy) toAlpha() (*computealpha.TargetHttpProxy, error) {
+	bytes, err := json.Marshal(targetHttpProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpProxy to JSON: %v", err)
+	}
+	alpha := &computealpha.TargetHttpProxy{}
+	err = json.Unmarshal(bytes, alpha)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpProxy JSON to compute alpha type: %v", err)
+	}
+
+	return alpha, nil
+}
+
+// toBeta converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpProxy *TargetHttpProxy) toBeta() (*computebeta.TargetHttpProxy, error) {
+	bytes, err := json.Marshal(targetHttpProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpProxy to JSON: %v", err)
+	}
+	beta := &computebeta.TargetHttpProxy{}
+	err = json.Unmarshal(bytes, beta)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpProxy JSON to compute beta type: %v", err)
+	}
+
+	return beta, nil
+}
+
+// toGA converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpProxy *TargetHttpProxy) toGA() (*compute.TargetHttpProxy, error) {
+	bytes, err := json.Marshal(targetHttpProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpProxy to JSON: %v", err)
+	}
+	ga := &compute.TargetHttpProxy{}
+	err = json.Unmarshal(bytes, ga)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpProxy JSON to compute ga type: %v", err)
+	}
+
+	return ga, nil
+}
+
+func CreateTargetHttpsProxy(targetHttpsProxy *TargetHttpsProxy, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("TargetHttpsProxy", "create", key.Region, key.Zone, string(targetHttpsProxy.Version))
+
+	switch targetHttpsProxy.Version {
+	case meta.VersionAlpha:
+		alpha, err := targetHttpsProxy.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha TargetHttpsProxy %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionTargetHttpsProxies().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaTargetHttpsProxies().Insert(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := targetHttpsProxy.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta TargetHttpsProxy %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaTargetHttpsProxies().Insert(ctx, key, beta))
+	default:
+		ga, err := targetHttpsProxy.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga TargetHttpsProxy %v", ga.Name)
+		return mc.Observe(cloud.Compute().TargetHttpsProxies().Insert(ctx, key, ga))
+	}
+}
+
+func GetTargetHttpsProxy(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*TargetHttpsProxy, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("TargetHttpsProxy", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegionTargetHttpsProxies().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaTargetHttpsProxies().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		gceObj, err = cloud.Compute().BetaTargetHttpsProxies().Get(ctx, key)
+	default:
+		gceObj, err = cloud.Compute().TargetHttpsProxies().Get(ctx, key)
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return toTargetHttpsProxy(gceObj)
+}
+
+// toTargetHttpsProxy converts a compute alpha, beta or GA
+// TargetHttpsProxy into our composite type.
+func toTargetHttpsProxy(obj interface{}) (*TargetHttpsProxy, error) {
+	be := &TargetHttpsProxy{}
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal object %+v to JSON: %v", obj, err)
+	}
+	err = json.Unmarshal(bytes, be)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling to TargetHttpsProxy: %v", err)
+	}
+	return be, nil
+}
+
+// toAlpha converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpsProxy *TargetHttpsProxy) toAlpha() (*computealpha.TargetHttpsProxy, error) {
+	bytes, err := json.Marshal(targetHttpsProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpsProxy to JSON: %v", err)
+	}
+	alpha := &computealpha.TargetHttpsProxy{}
+	err = json.Unmarshal(bytes, alpha)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpsProxy JSON to compute alpha type: %v", err)
+	}
+
+	return alpha, nil
+}
+
+// toBeta converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpsProxy *TargetHttpsProxy) toBeta() (*computebeta.TargetHttpsProxy, error) {
+	bytes, err := json.Marshal(targetHttpsProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpsProxy to JSON: %v", err)
+	}
+	beta := &computebeta.TargetHttpsProxy{}
+	err = json.Unmarshal(bytes, beta)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpsProxy JSON to compute beta type: %v", err)
+	}
+
+	return beta, nil
+}
+
+// toGA converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (targetHttpsProxy *TargetHttpsProxy) toGA() (*compute.TargetHttpsProxy, error) {
+	bytes, err := json.Marshal(targetHttpsProxy)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling TargetHttpsProxy to JSON: %v", err)
+	}
+	ga := &compute.TargetHttpsProxy{}
+	err = json.Unmarshal(bytes, ga)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling TargetHttpsProxy JSON to compute ga type: %v", err)
+	}
+
+	return ga, nil
+}
+
+func CreateUrlMap(urlMap *UrlMap, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("UrlMap", "create", key.Region, key.Zone, string(urlMap.Version))
+
+	switch urlMap.Version {
+	case meta.VersionAlpha:
+		alpha, err := urlMap.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha UrlMap %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionUrlMaps().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaUrlMaps().Insert(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := urlMap.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta UrlMap %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaUrlMaps().Insert(ctx, key, beta))
+	default:
+		ga, err := urlMap.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga UrlMap %v", ga.Name)
+		return mc.Observe(cloud.Compute().UrlMaps().Insert(ctx, key, ga))
+	}
+}
+
+func UpdateUrlMap(urlMap *UrlMap, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("UrlMap", "update", key.Region, key.Zone, string(urlMap.Version))
+
+	switch urlMap.Version {
+	case meta.VersionAlpha:
+		alpha, err := urlMap.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating alpha UrlMap %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegionUrlMaps().Update(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaUrlMaps().Update(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := urlMap.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating beta UrlMap %v", beta.Name)
+		return mc.Observe(cloud.Compute().BetaUrlMaps().Update(ctx, key, beta))
+	default:
+		ga, err := urlMap.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating ga UrlMap %v", ga.Name)
+		return mc.Observe(cloud.Compute().UrlMaps().Update(ctx, key, ga))
+	}
+}
+
+func GetUrlMap(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*UrlMap, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := composite.NewMetricContext("UrlMap", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegionUrlMaps().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaUrlMaps().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		gceObj, err = cloud.Compute().BetaUrlMaps().Get(ctx, key)
+	default:
+		gceObj, err = cloud.Compute().UrlMaps().Get(ctx, key)
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return toUrlMap(gceObj)
+}
+
+// toUrlMap converts a compute alpha, beta or GA
+// UrlMap into our composite type.
+func toUrlMap(obj interface{}) (*UrlMap, error) {
+	be := &UrlMap{}
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal object %+v to JSON: %v", obj, err)
+	}
+	err = json.Unmarshal(bytes, be)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling to UrlMap: %v", err)
+	}
+	return be, nil
+}
+
+// toAlpha converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (urlMap *UrlMap) toAlpha() (*computealpha.UrlMap, error) {
+	bytes, err := json.Marshal(urlMap)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling UrlMap to JSON: %v", err)
+	}
+	alpha := &computealpha.UrlMap{}
+	err = json.Unmarshal(bytes, alpha)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling UrlMap JSON to compute alpha type: %v", err)
+	}
+
+	return alpha, nil
+}
+
+// toBeta converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (urlMap *UrlMap) toBeta() (*computebeta.UrlMap, error) {
+	bytes, err := json.Marshal(urlMap)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling UrlMap to JSON: %v", err)
+	}
+	beta := &computebeta.UrlMap{}
+	err = json.Unmarshal(bytes, beta)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling UrlMap JSON to compute beta type: %v", err)
+	}
+
+	return beta, nil
+}
+
+// toGA converts our composite type into an alpha type.
+// This alpha type can be used in GCE API calls.
+func (urlMap *UrlMap) toGA() (*compute.UrlMap, error) {
+	bytes, err := json.Marshal(urlMap)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling UrlMap to JSON: %v", err)
+	}
+	ga := &compute.UrlMap{}
+	err = json.Unmarshal(bytes, ga)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling UrlMap JSON to compute ga type: %v", err)
 	}
 
 	return ga, nil

@@ -220,3 +220,513 @@ func TestConnectionDraining(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func TestForwardingRule(t *testing.T) {
+	// Use reflection to verify that our composite type contains all the
+	// same fields as the alpha type.
+	compositeType := reflect.TypeOf(ForwardingRule{})
+	alphaType := reflect.TypeOf(computealpha.ForwardingRule{})
+
+	// For the composite type, remove the Version field from consideration
+	compositeTypeNumFields := compositeType.NumField() - 1
+	if compositeTypeNumFields != alphaType.NumField() {
+		t.Fatalf("%v should contain %v fields. Got %v", alphaType.Name(), alphaType.NumField(), compositeTypeNumFields)
+	}
+
+	// Compare all the fields by doing a lookup since we can't guarantee that they'll be in the same order
+	for i := 1; i < compositeType.NumField(); i++ {
+		lookupField, found := alphaType.FieldByName(compositeType.Field(i).Name)
+		if !found {
+			t.Fatal(fmt.Errorf("Field %v not present in alpha type %v", compositeType.Field(i), alphaType))
+		}
+		if err := compareFields(compositeType.Field(i), lookupField); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestToForwardingRule(t *testing.T) {
+	testCases := []struct {
+		input    interface{}
+		expected *ForwardingRule
+	}{
+		{
+			computealpha.ForwardingRule{},
+			&ForwardingRule{},
+		},
+		{
+			computebeta.ForwardingRule{},
+			&ForwardingRule{},
+		},
+		{
+			compute.ForwardingRule{},
+			&ForwardingRule{},
+		},
+	}
+	for _, testCase := range testCases {
+		result, _ := toForwardingRule(testCase.input)
+		if !reflect.DeepEqual(result, testCase.expected) {
+			t.Fatalf("toForwardingRule(input) = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(testCase.input), pretty.Sprint(result), pretty.Sprint(testCase.expected))
+		}
+	}
+}
+
+func TestForwardingRuleToAlpha(t *testing.T) {
+	composite := ForwardingRule{}
+	expected := &computealpha.ForwardingRule{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("ForwardingRule.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("ForwardingRule.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestForwardingRuleToBeta(t *testing.T) {
+	composite := ForwardingRule{}
+	expected := &computebeta.ForwardingRule{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("ForwardingRule.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("ForwardingRule.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestForwardingRuleToGA(t *testing.T) {
+	composite := ForwardingRule{}
+	expected := &compute.ForwardingRule{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("ForwardingRule.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("ForwardingRule.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+
+func TestHTTP2HealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(HTTP2HealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HTTP2HealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestHTTPHealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(HTTPHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HTTPHealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestHTTPSHealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(HTTPSHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HTTPSHealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+func TestHealthCheck(t *testing.T) {
+	// Use reflection to verify that our composite type contains all the
+	// same fields as the alpha type.
+	compositeType := reflect.TypeOf(HealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.HealthCheck{})
+
+	// For the composite type, remove the Version field from consideration
+	compositeTypeNumFields := compositeType.NumField() - 1
+	if compositeTypeNumFields != alphaType.NumField() {
+		t.Fatalf("%v should contain %v fields. Got %v", alphaType.Name(), alphaType.NumField(), compositeTypeNumFields)
+	}
+
+	// Compare all the fields by doing a lookup since we can't guarantee that they'll be in the same order
+	for i := 1; i < compositeType.NumField(); i++ {
+		lookupField, found := alphaType.FieldByName(compositeType.Field(i).Name)
+		if !found {
+			t.Fatal(fmt.Errorf("Field %v not present in alpha type %v", compositeType.Field(i), alphaType))
+		}
+		if err := compareFields(compositeType.Field(i), lookupField); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestToHealthCheck(t *testing.T) {
+	testCases := []struct {
+		input    interface{}
+		expected *HealthCheck
+	}{
+		{
+			computealpha.HealthCheck{},
+			&HealthCheck{},
+		},
+		{
+			computebeta.HealthCheck{},
+			&HealthCheck{},
+		},
+		{
+			compute.HealthCheck{},
+			&HealthCheck{},
+		},
+	}
+	for _, testCase := range testCases {
+		result, _ := toHealthCheck(testCase.input)
+		if !reflect.DeepEqual(result, testCase.expected) {
+			t.Fatalf("toHealthCheck(input) = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(testCase.input), pretty.Sprint(result), pretty.Sprint(testCase.expected))
+		}
+	}
+}
+
+func TestHealthCheckToAlpha(t *testing.T) {
+	composite := HealthCheck{}
+	expected := &computealpha.HealthCheck{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("HealthCheck.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("HealthCheck.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestHealthCheckToBeta(t *testing.T) {
+	composite := HealthCheck{}
+	expected := &computebeta.HealthCheck{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("HealthCheck.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("HealthCheck.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestHealthCheckToGA(t *testing.T) {
+	composite := HealthCheck{}
+	expected := &compute.HealthCheck{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("HealthCheck.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("HealthCheck.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+
+func TestHostRule(t *testing.T) {
+	compositeType := reflect.TypeOf(HostRule{})
+	alphaType := reflect.TypeOf(computealpha.HostRule{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPathMatcher(t *testing.T) {
+	compositeType := reflect.TypeOf(PathMatcher{})
+	alphaType := reflect.TypeOf(computealpha.PathMatcher{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPathRule(t *testing.T) {
+	compositeType := reflect.TypeOf(PathRule{})
+	alphaType := reflect.TypeOf(computealpha.PathRule{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSSLHealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(SSLHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.SSLHealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTCPHealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(TCPHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.TCPHealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+func TestTargetHttpProxy(t *testing.T) {
+	// Use reflection to verify that our composite type contains all the
+	// same fields as the alpha type.
+	compositeType := reflect.TypeOf(TargetHttpProxy{})
+	alphaType := reflect.TypeOf(computealpha.TargetHttpProxy{})
+
+	// For the composite type, remove the Version field from consideration
+	compositeTypeNumFields := compositeType.NumField() - 1
+	if compositeTypeNumFields != alphaType.NumField() {
+		t.Fatalf("%v should contain %v fields. Got %v", alphaType.Name(), alphaType.NumField(), compositeTypeNumFields)
+	}
+
+	// Compare all the fields by doing a lookup since we can't guarantee that they'll be in the same order
+	for i := 1; i < compositeType.NumField(); i++ {
+		lookupField, found := alphaType.FieldByName(compositeType.Field(i).Name)
+		if !found {
+			t.Fatal(fmt.Errorf("Field %v not present in alpha type %v", compositeType.Field(i), alphaType))
+		}
+		if err := compareFields(compositeType.Field(i), lookupField); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestToTargetHttpProxy(t *testing.T) {
+	testCases := []struct {
+		input    interface{}
+		expected *TargetHttpProxy
+	}{
+		{
+			computealpha.TargetHttpProxy{},
+			&TargetHttpProxy{},
+		},
+		{
+			computebeta.TargetHttpProxy{},
+			&TargetHttpProxy{},
+		},
+		{
+			compute.TargetHttpProxy{},
+			&TargetHttpProxy{},
+		},
+	}
+	for _, testCase := range testCases {
+		result, _ := toTargetHttpProxy(testCase.input)
+		if !reflect.DeepEqual(result, testCase.expected) {
+			t.Fatalf("toTargetHttpProxy(input) = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(testCase.input), pretty.Sprint(result), pretty.Sprint(testCase.expected))
+		}
+	}
+}
+
+func TestTargetHttpProxyToAlpha(t *testing.T) {
+	composite := TargetHttpProxy{}
+	expected := &computealpha.TargetHttpProxy{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("TargetHttpProxy.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpProxy.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestTargetHttpProxyToBeta(t *testing.T) {
+	composite := TargetHttpProxy{}
+	expected := &computebeta.TargetHttpProxy{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("TargetHttpProxy.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpProxy.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestTargetHttpProxyToGA(t *testing.T) {
+	composite := TargetHttpProxy{}
+	expected := &compute.TargetHttpProxy{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("TargetHttpProxy.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpProxy.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestTargetHttpsProxy(t *testing.T) {
+	// Use reflection to verify that our composite type contains all the
+	// same fields as the alpha type.
+	compositeType := reflect.TypeOf(TargetHttpsProxy{})
+	alphaType := reflect.TypeOf(computealpha.TargetHttpsProxy{})
+
+	// For the composite type, remove the Version field from consideration
+	compositeTypeNumFields := compositeType.NumField() - 1
+	if compositeTypeNumFields != alphaType.NumField() {
+		t.Fatalf("%v should contain %v fields. Got %v", alphaType.Name(), alphaType.NumField(), compositeTypeNumFields)
+	}
+
+	// Compare all the fields by doing a lookup since we can't guarantee that they'll be in the same order
+	for i := 1; i < compositeType.NumField(); i++ {
+		lookupField, found := alphaType.FieldByName(compositeType.Field(i).Name)
+		if !found {
+			t.Fatal(fmt.Errorf("Field %v not present in alpha type %v", compositeType.Field(i), alphaType))
+		}
+		if err := compareFields(compositeType.Field(i), lookupField); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestToTargetHttpsProxy(t *testing.T) {
+	testCases := []struct {
+		input    interface{}
+		expected *TargetHttpsProxy
+	}{
+		{
+			computealpha.TargetHttpsProxy{},
+			&TargetHttpsProxy{},
+		},
+		{
+			computebeta.TargetHttpsProxy{},
+			&TargetHttpsProxy{},
+		},
+		{
+			compute.TargetHttpsProxy{},
+			&TargetHttpsProxy{},
+		},
+	}
+	for _, testCase := range testCases {
+		result, _ := toTargetHttpsProxy(testCase.input)
+		if !reflect.DeepEqual(result, testCase.expected) {
+			t.Fatalf("toTargetHttpsProxy(input) = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(testCase.input), pretty.Sprint(result), pretty.Sprint(testCase.expected))
+		}
+	}
+}
+
+func TestTargetHttpsProxyToAlpha(t *testing.T) {
+	composite := TargetHttpsProxy{}
+	expected := &computealpha.TargetHttpsProxy{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("TargetHttpsProxy.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpsProxy.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestTargetHttpsProxyToBeta(t *testing.T) {
+	composite := TargetHttpsProxy{}
+	expected := &computebeta.TargetHttpsProxy{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("TargetHttpsProxy.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpsProxy.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestTargetHttpsProxyToGA(t *testing.T) {
+	composite := TargetHttpsProxy{}
+	expected := &compute.TargetHttpsProxy{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("TargetHttpsProxy.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("TargetHttpsProxy.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+
+func TestUDPHealthCheck(t *testing.T) {
+	compositeType := reflect.TypeOf(UDPHealthCheck{})
+	alphaType := reflect.TypeOf(computealpha.UDPHealthCheck{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}
+func TestUrlMap(t *testing.T) {
+	// Use reflection to verify that our composite type contains all the
+	// same fields as the alpha type.
+	compositeType := reflect.TypeOf(UrlMap{})
+	alphaType := reflect.TypeOf(computealpha.UrlMap{})
+
+	// For the composite type, remove the Version field from consideration
+	compositeTypeNumFields := compositeType.NumField() - 1
+	if compositeTypeNumFields != alphaType.NumField() {
+		t.Fatalf("%v should contain %v fields. Got %v", alphaType.Name(), alphaType.NumField(), compositeTypeNumFields)
+	}
+
+	// Compare all the fields by doing a lookup since we can't guarantee that they'll be in the same order
+	for i := 1; i < compositeType.NumField(); i++ {
+		lookupField, found := alphaType.FieldByName(compositeType.Field(i).Name)
+		if !found {
+			t.Fatal(fmt.Errorf("Field %v not present in alpha type %v", compositeType.Field(i), alphaType))
+		}
+		if err := compareFields(compositeType.Field(i), lookupField); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestToUrlMap(t *testing.T) {
+	testCases := []struct {
+		input    interface{}
+		expected *UrlMap
+	}{
+		{
+			computealpha.UrlMap{},
+			&UrlMap{},
+		},
+		{
+			computebeta.UrlMap{},
+			&UrlMap{},
+		},
+		{
+			compute.UrlMap{},
+			&UrlMap{},
+		},
+	}
+	for _, testCase := range testCases {
+		result, _ := toUrlMap(testCase.input)
+		if !reflect.DeepEqual(result, testCase.expected) {
+			t.Fatalf("toUrlMap(input) = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(testCase.input), pretty.Sprint(result), pretty.Sprint(testCase.expected))
+		}
+	}
+}
+
+func TestUrlMapToAlpha(t *testing.T) {
+	composite := UrlMap{}
+	expected := &computealpha.UrlMap{}
+	result, err := composite.toAlpha()
+	if err != nil {
+		t.Fatalf("UrlMap.toAlpha() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("UrlMap.toAlpha() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestUrlMapToBeta(t *testing.T) {
+	composite := UrlMap{}
+	expected := &computebeta.UrlMap{}
+	result, err := composite.toBeta()
+	if err != nil {
+		t.Fatalf("UrlMap.toBeta() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("UrlMap.toBeta() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+func TestUrlMapToGA(t *testing.T) {
+	composite := UrlMap{}
+	expected := &compute.UrlMap{}
+	result, err := composite.toGA()
+	if err != nil {
+		t.Fatalf("UrlMap.toGA() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("UrlMap.toGA() = \ninput = %s\n%s\nwant = \n%s", pretty.Sprint(composite), pretty.Sprint(result), pretty.Sprint(expected))
+	}
+}
+
+func TestUrlMapTest(t *testing.T) {
+	compositeType := reflect.TypeOf(UrlMapTest{})
+	alphaType := reflect.TypeOf(computealpha.UrlMapTest{})
+	if err := typeEquality(compositeType, alphaType); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -46,15 +46,12 @@ const (
 // The format of the map is ServiceName -> k8s-cloud-provider wrapper name
 // TODO: (shance) Add the commented services and remove dependency on first cloud-provider layer
 var MainServices = map[string]string{
-	"BackendService": "BackendServices",
-	/*
-		"ForwardingRule":   "ForwardingRules",
-		"HttpHealthCheck":  "HttpHealthChecks",
-		"HttpsHealthCheck": "HttpsHealthChecks",
-		"UrlMap":           "UrlMaps",
-		"TargetHttpProxy":  "TargetHttpProxies",
-		"TargetHttpsProxy": "TargetHttpsProxies",
-	*/
+	"BackendService":   "BackendServices",
+	"ForwardingRule":   "ForwardingRules",
+	"HealthCheck":      "HealthChecks",
+	"UrlMap":           "UrlMaps",
+	"TargetHttpProxy":  "TargetHttpProxies",
+	"TargetHttpsProxy": "TargetHttpsProxies",
 }
 
 // TODO: (shance) Replace this with data gathered from meta.AllServices
@@ -63,6 +60,13 @@ var NoUpdate = sets.NewString(
 	"ForwardingRule",
 	"TargetHttpProxy",
 	"TargetHttpsProxy",
+)
+
+// TODO (shance) Replace this with data gathered from meta.AllServices
+// DefaultRegionalServices contains services which are regional by default.
+// Their global type is explicitly labeled (e.g. GlobalForwardingRule)
+var DefaultRegionalServices = sets.NewString(
+	"ForwardingRule",
 )
 
 var Versions = map[string]string{
@@ -90,6 +94,10 @@ func (apiService *ApiService) IsMainService() bool {
 
 func (apiService *ApiService) HasUpdate() bool {
 	return !NoUpdate.Has(apiService.Name)
+}
+
+func (apiService *ApiService) IsDefaultRegionalService() bool {
+	return DefaultRegionalServices.Has(apiService.Name)
 }
 
 func (apiService *ApiService) GetCloudProviderName() string {
@@ -293,6 +301,7 @@ import (
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
 	gcecloud "github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
+	"k8s.io/ingress-gce/pkg/composite/metrics"
 )
 `
 	tmpl := template.Must(template.New("header").Parse(text))
@@ -395,9 +404,13 @@ func genFuncs(wr io.Writer) {
 
 {{range $type := $All}}
 {{if .IsMainService}}
-	func Create{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) error {
+
+
+	{{if .IsDefaultRegionalService}}
+			func Create{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) error {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()
+  mc := composite.NewMetricContext("{{.Name}}", "create", key.Region, key.Zone, string({{.VarName}}.Version))
 
 	switch {{.VarName}}.Version {
 	case meta.VersionAlpha:
@@ -406,28 +419,43 @@ func genFuncs(wr io.Writer) {
 			return err
 		}
 		klog.V(3).Infof("Creating alpha {{.Name}} %v", alpha.Name)
-		return cloud.Compute().Alpha{{.GetCloudProviderName}}().Insert(ctx, key, alpha)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().Alpha{{.GetCloudProviderName}}().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaGlobal{{.GetCloudProviderName}}().Insert(ctx, key, alpha))
+	}
 	case meta.VersionBeta:
 		beta, err := {{.VarName}}.toBeta()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Creating beta {{.Name}} %v", beta.Name)
-		return cloud.Compute().Beta{{.GetCloudProviderName}}().Insert(ctx, key, beta)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().Beta{{.GetCloudProviderName}}().Insert(ctx, key, beta))
+		default:
+			return mc.Observe(cloud.Compute().BetaGlobal{{.GetCloudProviderName}}().Insert(ctx, key, beta))
+	}
 	default:
 		ga, err := {{.VarName}}.toGA()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Creating ga {{.Name}} %v", ga.Name)
-		return cloud.Compute().{{.GetCloudProviderName}}().Insert(ctx, key, ga)
-	}
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().{{.GetCloudProviderName}}().Insert(ctx, key, ga))
+		default:
+			return mc.Observe(cloud.Compute().Global{{.GetCloudProviderName}}().Insert(ctx, key, ga))
+	}	}
 }
 
 {{if .HasUpdate}}
 func Update{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) error {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()	
+  mc := composite.NewMetricContext("{{.Name}}", "update", key.Region, key.Zone, string({{.VarName}}.Version))
 
 	switch {{.VarName}}.Version {
 	case meta.VersionAlpha:
@@ -436,21 +464,35 @@ func Update{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) e
 			return err
 		}
 		klog.V(3).Infof("Updating alpha {{.Name}} %v", alpha.Name)
-		return cloud.Compute().Alpha{{.GetCloudProviderName}}().Update(ctx, key, alpha)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().Alpha{{.GetCloudProviderName}}().Update(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().AlphaGlobal{{.GetCloudProviderName}}().Update(ctx, key, alpha))
+		}
 	case meta.VersionBeta:
 		beta, err := {{.VarName}}.toBeta()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Updating beta {{.Name}} %v", beta.Name)
-		return cloud.Compute().Beta{{.GetCloudProviderName}}().Update(ctx, key, beta)
-	default:
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().Beta{{.GetCloudProviderName}}().Update(ctx, key, beta))
+		default:
+			return mc.Observe(cloud.Compute().BetaGlobal{{.GetCloudProviderName}}().Update(ctx, key, beta))
+		}	default:
 		ga, err := {{.VarName}}.toGA()
 		if err != nil {
 			return err
 		}
 		klog.V(3).Infof("Updating ga {{.Name}} %v", ga.Name)
-		return cloud.Compute().{{.GetCloudProviderName}}().Update(ctx, key, ga)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().{{.GetCloudProviderName}}().Update(ctx, key, ga))
+		default:
+			return mc.Observe(cloud.Compute().Global{{.GetCloudProviderName}}().Update(ctx, key, ga))
+		}
 	}
 }
 {{- end}}
@@ -458,22 +500,140 @@ func Update{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) e
 func Get{{.Name}}(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*{{.Name}}, error) {
 	ctx, cancel := gcecloud.ContextWithCallTimeout()
 	defer cancel()	
+  mc := composite.NewMetricContext("{{.Name}}", "get", key.Region, key.Zone, string(version))
 
 	var gceObj interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		gceObj, err = cloud.Compute().Alpha{{.GetCloudProviderName}}().Get(ctx, key)
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().Alpha{{.GetCloudProviderName}}().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().AlphaGlobal{{.GetCloudProviderName}}().Get(ctx, key)
+		}
+	case meta.VersionBeta:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().Beta{{.GetCloudProviderName}}().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().BetaGlobal{{.GetCloudProviderName}}().Get(ctx, key)
+		}
+	default:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().{{.GetCloudProviderName}}().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().Global{{.GetCloudProviderName}}().Get(ctx, key)
+		}
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	return to{{.Name}}(gceObj)
+}
+	
+	{{ else }}
+func Create{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()
+  mc := composite.NewMetricContext("{{.Name}}", "create", key.Region, key.Zone, string({{.VarName}}.Version))
+
+	switch {{.VarName}}.Version {
+	case meta.VersionAlpha:
+		alpha, err := {{.VarName}}.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating alpha {{.Name}} %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegion{{.GetCloudProviderName}}().Insert(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().Alpha{{.GetCloudProviderName}}().Insert(ctx, key, alpha))
+	}
+	case meta.VersionBeta:
+		beta, err := {{.VarName}}.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating beta {{.Name}} %v", beta.Name)
+		return mc.Observe(cloud.Compute().Beta{{.GetCloudProviderName}}().Insert(ctx, key, beta))
+	default:
+		ga, err := {{.VarName}}.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Creating ga {{.Name}} %v", ga.Name)
+		return mc.Observe(cloud.Compute().{{.GetCloudProviderName}}().Insert(ctx, key, ga))
+	}
+}
+
+{{if .HasUpdate}}
+func Update{{.Name}}({{.VarName}} *{{.Name}}, cloud *gce.Cloud, key *meta.Key) error {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()	
+  mc := composite.NewMetricContext("{{.Name}}", "update", key.Region, key.Zone, string({{.VarName}}.Version))
+
+	switch {{.VarName}}.Version {
+	case meta.VersionAlpha:
+		alpha, err := {{.VarName}}.toAlpha()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating alpha {{.Name}} %v", alpha.Name)
+		switch key.Type() {
+		case meta.Regional:
+			return mc.Observe(cloud.Compute().AlphaRegion{{.GetCloudProviderName}}().Update(ctx, key, alpha))
+		default:
+			return mc.Observe(cloud.Compute().Alpha{{.GetCloudProviderName}}().Update(ctx, key, alpha))
+		}
+	case meta.VersionBeta:
+		beta, err := {{.VarName}}.toBeta()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating beta {{.Name}} %v", beta.Name)
+		return mc.Observe(cloud.Compute().Beta{{.GetCloudProviderName}}().Update(ctx, key, beta))
+	default:
+		ga, err := {{.VarName}}.toGA()
+		if err != nil {
+			return err
+		}
+		klog.V(3).Infof("Updating ga {{.Name}} %v", ga.Name)
+		return mc.Observe(cloud.Compute().{{.GetCloudProviderName}}().Update(ctx, key, ga))
+	}
+}
+{{- end}}
+
+func Get{{.Name}}(name string, version meta.Version, cloud *gce.Cloud, key *meta.Key) (*{{.Name}}, error) {
+	ctx, cancel := gcecloud.ContextWithCallTimeout()
+	defer cancel()	
+  mc := composite.NewMetricContext("{{.Name}}", "get", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		switch key.Type() {
+		case meta.Regional:
+			gceObj, err = cloud.Compute().AlphaRegion{{.GetCloudProviderName}}().Get(ctx, key)
+		default:
+			gceObj, err = cloud.Compute().Alpha{{.GetCloudProviderName}}().Get(ctx, key)
+		}
 	case meta.VersionBeta:
 		gceObj, err = cloud.Compute().Beta{{.GetCloudProviderName}}().Get(ctx, key)
 	default:
 		gceObj, err = cloud.Compute().{{.GetCloudProviderName}}().Get(ctx, key)
 	}
 	if err != nil {
-		return nil, err
+		return nil, mc.Observe(err)
 	}
 	return to{{.Name}}(gceObj)
 }
+
+	{{- end}}
+
 
 // to{{.Name}} converts a compute alpha, beta or GA
 // {{.Name}} into our composite type.
@@ -517,11 +677,11 @@ func ({{$type.VarName}} *{{$type.Name}}) to{{$version}}() (*compute{{$extension}
 
 	return {{$lower}}, nil
 }
-{{- end}}
+{{- end}} {{/* range versions */}}
 
 
-{{- end}}
-{{- end}}
+{{- end}} {{/* isMainType */}}
+{{- end}} {{/* range */}}
 `
 	data := struct {
 		All      []ApiService
