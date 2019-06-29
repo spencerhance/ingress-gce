@@ -315,7 +315,12 @@ func GetLBAnnotations(l7 *L7, existing map[string]string, backendSyncer backends
 	}
 	backendState := map[string]string{}
 	for _, beName := range backends {
-		backendState[beName] = backendSyncer.Status(beName, l7.version, l7.scope)
+		state, err := backendSyncer.Status(beName, l7.version, l7.scope)
+		// Don't return error here since we wan't to keep syncing
+		if err != nil {
+			klog.Error(err)
+		}
+		backendState[beName] = state
 	}
 	jsonBackendState := "Unknown"
 	b, err := json.Marshal(backendState)

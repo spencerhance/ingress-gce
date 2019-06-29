@@ -51,7 +51,7 @@ func (l *L7) ensureComputeURLMap() error {
 	expectedMap := toCompositeURLMap(l.Name, l.runtimeInfo.UrlMap, l.namer, key)
 	key.Name = expectedMap.Name
 
-	expectedMap.Version = meta.VersionGA
+	expectedMap.Version = l.version
 	currentMap, err := composite.GetUrlMap(l.cloud, key, l.version)
 	if utils.IgnoreHTTPNotFound(err) != nil {
 		return err

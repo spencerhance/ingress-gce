@@ -88,3 +88,11 @@ func nodePorts(svcPorts []utils.ServicePort) []int64 {
 	}
 	return ports
 }
+
+func UpdateServicePortsForILB(ingSvcPorts []utils.ServicePort, ing *extensions.Ingress) error {
+	for svcPortIdx, _ := range ingSvcPorts {
+		ingSvcPorts[svcPortIdx].L7ILBEnabled = true
+		ingSvcPorts[svcPortIdx].NEGEnabled = true
+	}
+	return nil
+}

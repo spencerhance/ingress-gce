@@ -88,9 +88,9 @@ func (l *L7) checkForwardingRule(name, proxyLink, ip, portRange string) (fw *com
 			Version:     l.version,
 		}
 
-		key, err := l.CreateKey(rule.Name)
-		if err != nil {
-			return nil, err
+		// Update rule for L7-ILB
+		if utils.IsGCEL7ILBIngress(l.runtimeInfo.Ingress) {
+			rule.LoadBalancingScheme = "INTERNAL_MANAGED"
 		}
 		if err = composite.CreateForwardingRule(l.cloud, key, rule); err != nil {
 			return nil, err

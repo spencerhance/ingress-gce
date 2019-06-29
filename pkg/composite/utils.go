@@ -55,10 +55,14 @@ func ListAllUrlMaps(gceCloud *gce.Cloud) ([]*UrlMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	key2, err := CreateKey(gceCloud, "", meta.Regional)
+	if err != nil {
+		return nil, err
+	}
 
 	// List ga-global and regional-alpha
-	versions := []meta.Version{meta.VersionGA}
-	keys := []*meta.Key{key1}
+	versions := []meta.Version{meta.VersionGA, meta.VersionAlpha}
+	keys := []*meta.Key{key1, key2}
 
 	for i := range versions {
 		list, err := ListUrlMaps(gceCloud, keys[i], versions[i])
@@ -89,10 +93,14 @@ func ListAllBackendServices(gceCloud *gce.Cloud) ([]*BackendService, error) {
 	if err != nil {
 		return nil, err
 	}
+	key2, err := CreateKey(gceCloud, "", meta.Regional)
+	if err != nil {
+		return nil, err
+	}
 
 	// List ga-global and regional-alpha
-	versions := []meta.Version{meta.VersionGA}
-	keys := []*meta.Key{key1}
+	versions := []meta.Version{meta.VersionGA, meta.VersionAlpha}
+	keys := []*meta.Key{key1, key2}
 
 	for i := range versions {
 		list, err := ListBackendServices(gceCloud, keys[i], versions[i])

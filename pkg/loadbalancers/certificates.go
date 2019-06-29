@@ -19,11 +19,12 @@ package loadbalancers
 import (
 	"crypto/sha256"
 	"fmt"
+	"k8s.io/ingress-gce/pkg/composite"
 	"net/http"
 	"strings"
 
+	compute "google.golang.org/api/compute/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/ingress-gce/pkg/composite"
 	"k8s.io/ingress-gce/pkg/utils"
 	"k8s.io/klog"
 )

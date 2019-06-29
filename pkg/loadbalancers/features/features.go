@@ -23,6 +23,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+const (
+	FeatureL7ILB = "L7ILB"
+)
+
 var (
 	// versionToFeatures stores the mapping from the required API
 	// version to feature names.
@@ -33,7 +37,9 @@ var (
 	// TODO: (shance) add L7-ILB here
 	// Only add features that have a hard scope requirement
 	// TODO: (shance) refactor scope to be per-resource
-	scopeToFeatures = map[meta.KeyType][]string{}
+	scopeToFeatures = map[meta.KeyType][]string{
+		meta.Regional: []string{FeatureL7ILB},
+	}
 )
 
 // featuresFromIngress returns the features enabled by an ingress

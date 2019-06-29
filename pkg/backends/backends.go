@@ -14,6 +14,7 @@ limitations under the License.
 package backends
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
@@ -73,21 +74,27 @@ func (b *Backends) Create(sp utils.ServicePort, hcLink string) (*composite.Backe
 		PortName:     namedPort.Name,
 		HealthChecks: []string{hcLink},
 	}
-	ensureDescription(be, &sp)
 
+	if sp.L7ILBEnabled {
+		be.LoadBalancingScheme = "INTERNAL"
+	}
+
+	ensureDescription(be, &sp)
 	scope := features.ScopeFromServicePort(&sp)
 	key, err := composite.CreateKey(b.cloud, name, scope)
 	if err != nil {
 		return nil, err
 	}
-	if err := composite.CreateBackendService(b.cloud, key, be); err != nil {
-		return nil, err
-	}
-	// Note: We need to perform a GCE call to re-fetch the object we just created
-	// so that the "Fingerprint" field is filled in. This is needed to update the
-	// object without error.
-	return b.Get(name, version, scope)
+
+		if err := composite.CreateBackendService(b.cloud, key, be); err != nil {
+			return nil, err
+		}
+		// Note: We need to perform a GCE call to re-fetch the object we just created
+		// so that the "Fingerprint" field is filled in. This is needed to update the
+		// object without error.
+		return b.Get(name, version, scope)
 }
+
 
 // Update implements Pool.
 func (b *Backends) Update(be *composite.BackendService) error {
@@ -161,30 +168,30 @@ func (b *Backends) Delete(name string, version meta.Version, scope meta.KeyType)
 }
 
 // Health implements Pool.
-func (b *Backends) Health(name string, version meta.Version, scope meta.KeyType) string {
-	be, err := b.Get(name, version, scope)
-	if err != nil || len(be.Backends) == 0 {
-		return "Unknown"
-	}
+func (b *Backends) Health(name string, version meta.Version, scope meta.KeyType) (string, error) {
+		be, err := b.Get(name, version, scope)
+		if err != nil || len(be.Backends) == 0 {
+			return "Unknown", fmt.Errorf("error getting health for backend %s: %v", name, err)
+		}
 
-	// TODO: Look at more than one backend's status
-	// TODO: Include port, ip in the status, since it's in the health info.
-	// TODO (shance) convert to composite types
-	var hs *compute.BackendServiceGroupHealth
-	switch scope {
-	case meta.Global:
-		hs, err = b.cloud.GetGlobalBackendServiceHealth(name, be.Backends[0].Group)
-	case meta.Regional:
-		hs, err = b.cloud.GetRegionalBackendServiceHealth(name, b.cloud.Region(), be.Backends[0].Group)
-	default:
-		return "Unknown"
-	}
+		// TODO: Look at more than one backend's status
+		// TODO: Include port, ip in the status, since it's in the health info.
+		// TODO (shance) convert to composite types
+		var hs *compute.BackendServiceGroupHealth
+		switch scope {
+		case meta.Global:
+			hs, err = b.cloud.GetGlobalBackendServiceHealth(name, be.Backends[0].Group)
+		case meta.Regional:
+			hs, err = b.cloud.GetRegionalBackendServiceHealth(name, b.cloud.Region(), be.Backends[0].Group)
+		default:
+			return "Unknown", fmt.Errorf("invalid scope for Health(): %s", scope)
+		}
 
-	if err != nil || len(hs.HealthStatus) == 0 || hs.HealthStatus[0] == nil {
-		return "Unknown"
-	}
-	// TODO: State transition are important, not just the latest.
-	return hs.HealthStatus[0].HealthState
+		if err != nil || len(hs.HealthStatus) == 0 || hs.HealthStatus[0] == nil {
+			return "Unknown", fmt.Errorf("error getting health for backend %s: %v", name, err)
+		}
+		// TODO: State transition are important, not just the latest.
+		return hs.HealthStatus[0].HealthState, nil
 }
 
 // List lists all backends managed by this controller.
