@@ -76,6 +76,7 @@ type ControllerContextConfig struct {
 	HealthCheckPath               string
 	DefaultBackendHealthCheckPath string
 	FrontendConfigEnabled         bool
+	L7IlbEnabled									bool
 }
 
 // NewControllerContext returns a new shared set of informers.

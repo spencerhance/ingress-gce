@@ -132,6 +132,7 @@ func main() {
 		HealthCheckPath:               flags.F.HealthCheckPath,
 		DefaultBackendHealthCheckPath: flags.F.DefaultSvcHealthCheckPath,
 		FrontendConfigEnabled:         flags.F.EnableFrontendConfig,
+		L7IlbEnabled:                  flags.F.EnableL7Ilb,
 	}
 	ctx := ingctx.NewControllerContext(kubeClient, backendConfigClient, frontendConfigClient, cloud, namer, ctxConfig)
 	go app.RunHTTPServer(ctx.HealthCheck)
