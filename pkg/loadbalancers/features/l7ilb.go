@@ -42,10 +42,10 @@ func ILBSubnetSourceRange(cloud *gce.Cloud, region string) (string, error) {
 
 // L7ILBVersion is a helper to get the version of L7-ILB
 func L7ILBVersion() meta.Version {
-	return VersionFromFeatures([]string{FeatureL7ILB})
+	return versionFromFeatures([]string{FeatureL7ILB})
 }
 
 // L7ILBScope is a helper to get the scope of L7-ILB
 func L7ILBScope() meta.KeyType {
-	return ScopeFromFeatures([]string{FeatureL7ILB})
+	return scopeFromFeatures([]string{FeatureL7ILB})
 }

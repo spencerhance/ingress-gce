@@ -199,7 +199,7 @@ func knownPortsFromServicePorts(cloud *gce.Cloud, namer *utils.Namer, svcPorts [
 }
 
 // Status implements Syncer.
-func (s *backendSyncer) Status(name string, version meta.Version, scope meta.KeyType) string {
+func (s *backendSyncer) Status(name string, version meta.Version, scope meta.KeyType) (string, error) {
 	return s.backendPool.Health(name, version, scope)
 }
 
