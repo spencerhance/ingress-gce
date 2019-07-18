@@ -84,7 +84,7 @@ var (
 		EnableReadinessReflector  bool
 		FinalizerAdd              bool
 		FinalizerRemove           bool
-		EnableL7Ilb								bool
+		EnableL7Ilb               bool
 
 		LeaderElection LeaderElectionConfiguration
 	}{}

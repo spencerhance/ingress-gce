@@ -19,8 +19,8 @@ package healthchecks
 import (
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/mock"
-	"k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
 	computealpha "google.golang.org/api/compute/v0.alpha"
+	"k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
 	"net/http"
 	"testing"
 
