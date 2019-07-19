@@ -269,7 +269,9 @@ func IGLinks(igs []*compute.InstanceGroup) (igLinks []string) {
 func IsGCEIngress(ing *extensions.Ingress) bool {
 	class := annotations.FromIngress(ing).IngressClass()
 	if flags.F.IngressClass == "" {
-		return class == "" || class == annotations.GceIngressClass || class == annotations.GceL7ILBIngressClass
+		// TODO: (shance) remove flag check for L7-ILB once fully rolled out
+		// In the meantime, we should not sync those ingresses since technically we don't support the class yet
+		return class == "" || class == annotations.GceIngressClass || (class == annotations.GceL7ILBIngressClass && flags.F.EnableL7Ilb)
 	}
 	return class == flags.F.IngressClass
 }
@@ -290,7 +292,7 @@ func IsGCEL7ILBIngress(ing *extensions.Ingress) bool {
 
 // IsGLBCIngress returns true if the given Ingress should be processed by GLBC
 func IsGLBCIngress(ing *extensions.Ingress) bool {
-	return IsGCEIngress(ing) || IsGCEMultiClusterIngress(ing) || IsGCEL7ILBIngress(ing)
+	return IsGCEIngress(ing) || IsGCEMultiClusterIngress(ing) || (IsGCEL7ILBIngress(ing) && flags.F.EnableL7Ilb)
 }
 
 // GetReadyNodeNames returns names of schedulable, ready nodes from the node lister
