@@ -363,6 +363,10 @@ func TestSyncQuota(t *testing.T) {
 				bsCreated -= 1
 				return false, nil
 			}
+			(fakeGCE.Compute().(*cloud.MockGCE)).MockBetaBackendServices.DeleteHook = func(ctx context.Context, key *meta.Key, m *cloud.MockBetaBackendServices) (bool, error) {
+				bsCreated -= 1
+				return false, nil
+			}
 
 			if err := syncer.Sync(tc.oldPorts); err != nil {
 				t.Errorf("Expected backend pool to add node ports, err: %v", err)

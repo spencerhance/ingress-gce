@@ -45,7 +45,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.37.4
-	github.com/GoogleCloudPlatform/k8s-cloud-provider => github.com/GoogleCloudPlatform/k8s-cloud-provider v0.0.0-20190711003524-c2d87031f3f3
+	github.com/GoogleCloudPlatform/k8s-cloud-provider => github.com/spencerhance/k8s-cloud-provider v0.0.0-20190719041032-ca33b36cf4f7
 	github.com/PuerkitoBio/purell => github.com/PuerkitoBio/purell v1.1.1
 	github.com/beorn7/perks => github.com/beorn7/perks v1.0.0
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.9.3+incompatible

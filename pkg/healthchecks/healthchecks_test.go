@@ -384,7 +384,7 @@ func TestVersion(t *testing.T) {
 				forILB: true,
 				ForNEG: true,
 			},
-			version: meta.VersionAlpha,
+			version: meta.VersionBeta,
 		},
 	}
 	t.Parallel()

@@ -147,7 +147,7 @@ func (l *L7s) GC(names []string) error {
 		// TODO: (shance) figure out a cleaner way to determine this
 		// Regional resources are alpha only
 		if scopes[i] != meta.Global {
-			version = meta.VersionAlpha
+			version = meta.VersionBeta
 		}
 
 		if err := l.Delete(name, version, scopes[i]); err != nil {

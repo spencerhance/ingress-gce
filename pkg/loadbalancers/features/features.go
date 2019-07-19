@@ -33,7 +33,7 @@ var (
 	// version to feature names.
 	// TODO: (shance) Add L7-ILB here
 	versionToFeatures = map[meta.Version][]string{
-		meta.VersionAlpha: []string{FeatureL7ILB},
+		meta.VersionBeta: []string{FeatureL7ILB},
 	}
 	// scopeToFeatures stores the mapping from the required resource type
 	// to feature names
