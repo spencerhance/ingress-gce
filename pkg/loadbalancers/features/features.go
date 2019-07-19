@@ -21,6 +21,7 @@ import (
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/ingress-gce/pkg/utils"
 )
 
 const (
@@ -46,7 +47,10 @@ var (
 
 // featuresFromIngress returns the features enabled by an ingress
 func featuresFromIngress(ing *v1beta1.Ingress) []string {
-	result := []string{}
+	var result []string
+	if utils.IsGCEL7ILBIngress(ing) {
+		result = append(result, FeatureL7ILB)
+	}
 	return result
 }
 

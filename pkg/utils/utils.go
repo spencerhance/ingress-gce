@@ -292,6 +292,7 @@ func IsGCEL7ILBIngress(ing *extensions.Ingress) bool {
 
 // IsGLBCIngress returns true if the given Ingress should be processed by GLBC
 func IsGLBCIngress(ing *extensions.Ingress) bool {
+	// TODO: (shance) remove flag check for L7-ILB once fully rolled out
 	return IsGCEIngress(ing) || IsGCEMultiClusterIngress(ing) || (IsGCEL7ILBIngress(ing) && flags.F.EnableL7Ilb)
 }
 
