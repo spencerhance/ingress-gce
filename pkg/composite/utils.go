@@ -48,6 +48,7 @@ func CreateKey(gceCloud *gce.Cloud, name string, scope meta.KeyType) (*meta.Key,
 // TODO: (shance) generate this
 // TODO: (shance) add regional and alpha
 // TODO: (shance) populate scope
+// TODO: (shance) figure out a better way to get version
 // ListAllUrlMaps() merges all configured List() calls into one list of composite UrlMaps
 func ListAllUrlMaps(gceCloud *gce.Cloud) ([]*UrlMap, error) {
 	resultMap := map[string]*UrlMap{}
@@ -86,6 +87,7 @@ func ListAllUrlMaps(gceCloud *gce.Cloud) ([]*UrlMap, error) {
 // TODO: (shance) generate this
 // TODO: (shance) add regional and alpha
 // TODO: (shance) populate scope
+// TODO: (shance) figure out a more accurate way to obtain version
 // ListAllUrlMaps() merges all configured List() calls into one list of composite UrlMaps
 func ListAllBackendServices(gceCloud *gce.Cloud) ([]*BackendService, error) {
 	resultMap := map[string]*BackendService{}

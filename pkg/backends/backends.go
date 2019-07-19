@@ -15,6 +15,7 @@ package backends
 
 import (
 	"fmt"
+	"k8s.io/ingress-gce/pkg/flags"
 	"net/http"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
@@ -197,7 +198,13 @@ func (b *Backends) Health(name string, version meta.Version, scope meta.KeyType)
 func (b *Backends) List() ([]*composite.BackendService, error) {
 	// TODO: for consistency with the rest of this sub-package this method
 	// should return a list of backend ports.
-	backends, err := composite.ListAllBackendServices(b.cloud)
+	var backends []*composite.BackendService
+	var err error
+	if flags.F.EnableL7Ilb {
+		backends, err = composite.ListAllBackendServices(b.cloud)
+	} else {
+		backends, err = composite.ListBackendServices(b.cloud, meta.GlobalKey(""), meta.VersionGA)
+	}
 	if err != nil {
 		return nil, err
 	}

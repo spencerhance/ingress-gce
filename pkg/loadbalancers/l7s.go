@@ -19,6 +19,7 @@ package loadbalancers
 import (
 	"fmt"
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
+	"k8s.io/ingress-gce/pkg/flags"
 	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
 
@@ -95,7 +96,13 @@ func (l *L7s) List() ([]string, []meta.KeyType, error) {
 	var names []string
 	var scopes []meta.KeyType
 
-	urlMaps, err := composite.ListAllUrlMaps(l.cloud)
+	var urlMaps []*composite.UrlMap
+	var err error
+	if flags.F.EnableL7Ilb {
+		urlMaps, err = composite.ListAllUrlMaps(l.cloud)
+	} else {
+		urlMaps, err = composite.ListUrlMaps(l.cloud, meta.GlobalKey(""), meta.VersionGA)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
