@@ -319,7 +319,11 @@ func GetLBAnnotations(l7 *L7, existing map[string]string, backendSyncer backends
 	backendState := map[string]string{}
 	for _, beName := range backends {
 		version := l7.Version(features.BackendService)
-		state, err := backendSyncer.Status(beName, version, l7.scope)
+		key, err := l7.CreateKey(beName)
+		if err != nil {
+			return nil, fmt.Errorf("error createing key for BackendService %s: %v", beName, err)
+		}
+		state, err := backendSyncer.Status(key, version)
 		// Don't return error here since we want to keep syncing
 		if err != nil {
 			klog.Errorf("Error syncing backend status for %s - %s - %s: %v", beName, version, l7.scope, err)

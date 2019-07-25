@@ -23,10 +23,6 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/ingress-gce/pkg/frontendconfig"
-
-	"k8s.io/klog"
-
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/api/networking/v1beta1"
@@ -37,22 +33,23 @@ import (
 	listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/ingress-gce/pkg/annotations"
 	backendconfigv1beta1 "k8s.io/ingress-gce/pkg/apis/backendconfig/v1beta1"
 	frontendconfigv1beta1 "k8s.io/ingress-gce/pkg/apis/frontendconfig/v1beta1"
 	"k8s.io/ingress-gce/pkg/backends"
 	"k8s.io/ingress-gce/pkg/common/operator"
-	"k8s.io/ingress-gce/pkg/healthchecks"
-	"k8s.io/ingress-gce/pkg/instances"
-
-	"k8s.io/ingress-gce/pkg/annotations"
 	"k8s.io/ingress-gce/pkg/context"
 	"k8s.io/ingress-gce/pkg/controller/translator"
 	"k8s.io/ingress-gce/pkg/flags"
+	"k8s.io/ingress-gce/pkg/frontendconfig"
+	"k8s.io/ingress-gce/pkg/healthchecks"
+	"k8s.io/ingress-gce/pkg/instances"
 	"k8s.io/ingress-gce/pkg/loadbalancers"
 	negtypes "k8s.io/ingress-gce/pkg/neg/types"
 	ingsync "k8s.io/ingress-gce/pkg/sync"
 	"k8s.io/ingress-gce/pkg/tls"
 	"k8s.io/ingress-gce/pkg/utils"
+	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/util/slice"
 )
 
@@ -237,7 +234,7 @@ func NewLoadBalancerController(
 
 	// Register health check on controller context.
 	ctx.AddHealthCheck("ingress", func() error {
-		_, err := backendPool.Get("foo", meta.VersionGA, meta.Global)
+		_, err := backendPool.Get(meta.GlobalKey("foo"), meta.VersionGA)
 
 		// If this container is scheduled on a node without compute/rw it is
 		// effectively useless, but it is healthy. Reporting it as unhealthy

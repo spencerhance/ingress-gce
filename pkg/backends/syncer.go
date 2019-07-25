@@ -77,7 +77,13 @@ func (s *backendSyncer) ensureBackendService(sp utils.ServicePort) error {
 	version := features.VersionFromServicePort(&sp)
 	scope := features.ScopeFromServicePort(&sp)
 
-	be, getErr := s.backendPool.Get(beName, version, scope)
+	// TODO(shance): fix cast
+	key, err := composite.CreateKey(s.backendPool.(*Backends).cloud, beName, scope)
+	if err != nil {
+		return err
+	}
+
+	be, getErr := s.backendPool.Get(key, version)
 	hasLegacyHC := false
 	if be != nil {
 		// If the backend already exists, find out if it is using a legacy health check.
@@ -164,7 +170,7 @@ func (s *backendSyncer) GC(svcPorts []utils.ServicePort) error {
 		}
 
 		klog.V(2).Infof("GCing backendService for port %s", name)
-		err = s.backendPool.Delete(name, be.Version, scope)
+		err = s.backendPool.Delete(key, be.Version)
 		if err != nil {
 			if utils.IsHTTPErrorCode(err, http.StatusNotFound) {
 				klog.Infof("backendPool.Delete(%v, %v, %v) = %v; backend service not found, ignoring", name, be.Version, scope, err)
@@ -175,6 +181,7 @@ func (s *backendSyncer) GC(svcPorts []utils.ServicePort) error {
 			return err
 		}
 
+		//TODO
 		if err := s.healthChecker.Delete(name, scope); err != nil {
 			return err
 		}
@@ -199,8 +206,8 @@ func knownPortsFromServicePorts(cloud *gce.Cloud, namer *utils.Namer, svcPorts [
 }
 
 // Status implements Syncer.
-func (s *backendSyncer) Status(name string, version meta.Version, scope meta.KeyType) (string, error) {
-	return s.backendPool.Health(name, version, scope)
+func (s *backendSyncer) Status(key *meta.Key, version meta.Version) (string, error) {
+	return s.backendPool.Health(key, version)
 }
 
 // Shutdown implements Syncer.

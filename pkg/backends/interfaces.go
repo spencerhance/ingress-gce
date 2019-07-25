@@ -35,15 +35,15 @@ type GroupKey struct {
 // Backend Services.
 type Pool interface {
 	// Get a composite BackendService given a required version.
-	Get(name string, version meta.Version, scope meta.KeyType) (*composite.BackendService, error)
+	Get(key *meta.Key, version meta.Version) (*composite.BackendService, error)
 	// Create a composite BackendService and returns it.
 	Create(sp utils.ServicePort, hcLink string) (*composite.BackendService, error)
 	// Update a BackendService given the composite type.
 	Update(be *composite.BackendService) error
 	// Delete a BackendService given its name.
-	Delete(name string, version meta.Version, scope meta.KeyType) error
+	Delete(key *meta.Key, version meta.Version) error
 	// Get the health of a BackendService given its name.
-	Health(name string, version meta.Version, scope meta.KeyType) (string, error)
+	Health(key *meta.Key, version meta.Version) (string, error)
 	// Get a list of BackendService names that are managed by this pool.
 	List() ([]*composite.BackendService, error)
 }
@@ -58,7 +58,7 @@ type Syncer interface {
 	// GC garbage collects unused BackendService's
 	GC(svcPorts []utils.ServicePort) error
 	// Status returns the status of a BackendService given its name.
-	Status(name string, version meta.Version, scope meta.KeyType) (string, error)
+	Status(key *meta.Key, version meta.Version) (string, error)
 	// Shutdown cleans up all BackendService's previously synced.
 	Shutdown() error
 }

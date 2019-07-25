@@ -93,7 +93,7 @@ func (b *Backends) Create(sp utils.ServicePort, hcLink string) (*composite.Backe
 	// Note: We need to perform a GCE call to re-fetch the object we just created
 	// so that the "Fingerprint" field is filled in. This is needed to update the
 	// object without error.
-	return b.Get(name, version, scope)
+	return b.Get(key, version)
 }
 
 // Update implements Pool.
@@ -116,11 +116,7 @@ func (b *Backends) Update(be *composite.BackendService) error {
 }
 
 // Get implements Pool.
-func (b *Backends) Get(name string, version meta.Version, scope meta.KeyType) (*composite.BackendService, error) {
-	key, err := composite.CreateKey(b.cloud, name, scope)
-	if err != nil {
-		return nil, err
-	}
+func (b *Backends) Get(key *meta.Key, version meta.Version) (*composite.BackendService, error) {
 	be, err := composite.GetBackendService(b.cloud, key, version)
 	if err != nil {
 		return nil, err
@@ -140,20 +136,16 @@ func (b *Backends) Get(name string, version meta.Version, scope meta.KeyType) (*
 }
 
 // Delete implements Pool.
-func (b *Backends) Delete(name string, version meta.Version, scope meta.KeyType) (err error) {
+func (b *Backends) Delete(key *meta.Key, version meta.Version) (err error) {
 	defer func() {
 		if utils.IsHTTPErrorCode(err, http.StatusNotFound) {
 			err = nil
 		}
 	}()
 
-	klog.V(2).Infof("Deleting backend service %v", name)
+	klog.V(2).Infof("Deleting backend service %v", key.Name)
 
 	// Try deleting health checks even if a backend is not found.
-	key, err := composite.CreateKey(b.cloud, name, scope)
-	if err != nil {
-		return err
-	}
 	err = composite.DeleteBackendService(b.cloud, key, version)
 	if err != nil {
 		if utils.IsHTTPErrorCode(err, http.StatusNotFound) {
@@ -168,27 +160,27 @@ func (b *Backends) Delete(name string, version meta.Version, scope meta.KeyType)
 }
 
 // Health implements Pool.
-func (b *Backends) Health(name string, version meta.Version, scope meta.KeyType) (string, error) {
-	be, err := b.Get(name, version, scope)
+func (b *Backends) Health(key *meta.Key, version meta.Version) (string, error) {
+	be, err := b.Get(key, version)
 	if err != nil || len(be.Backends) == 0 {
-		return "Unknown", fmt.Errorf("error getting health for backend %s: %v", name, err)
+		return "Unknown", fmt.Errorf("error getting health for backend %s: %v", key.Name, err)
 	}
 
 	// TODO: Look at more than one backend's status
 	// TODO: Include port, ip in the status, since it's in the health info.
 	// TODO (shance) convert to composite types
 	var hs *compute.BackendServiceGroupHealth
-	switch scope {
+	switch key.Type() {
 	case meta.Global:
-		hs, err = b.cloud.GetGlobalBackendServiceHealth(name, be.Backends[0].Group)
+		hs, err = b.cloud.GetGlobalBackendServiceHealth(key.Name, be.Backends[0].Group)
 	case meta.Regional:
-		hs, err = b.cloud.GetRegionalBackendServiceHealth(name, b.cloud.Region(), be.Backends[0].Group)
+		hs, err = b.cloud.GetRegionalBackendServiceHealth(key.Name, b.cloud.Region(), be.Backends[0].Group)
 	default:
-		return "Unknown", fmt.Errorf("invalid scope for Health(): %s", scope)
+		return "Unknown", fmt.Errorf("invalid scope for Health(): %s", key.Type())
 	}
 
 	if err != nil || len(hs.HealthStatus) == 0 || hs.HealthStatus[0] == nil {
-		return "Unknown", fmt.Errorf("error getting health for backend %q: %v", name, err)
+		return "Unknown", fmt.Errorf("error getting health for backend %q: %v", key.Type(), err)
 	}
 	// TODO: State transition are important, not just the latest.
 	return hs.HealthStatus[0].HealthState, nil
@@ -203,7 +195,6 @@ func (b *Backends) List() ([]*composite.BackendService, error) {
 	if flags.F.EnableL7Ilb {
 		backends, err = composite.ListAllBackendServices(b.cloud)
 	} else {
-		// TODO: (shance) this needs to be changed to not take a key
 		backends, err = composite.ListBackendServices(b.cloud, meta.GlobalKey(""), meta.VersionGA)
 	}
 	if err != nil {

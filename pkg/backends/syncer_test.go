@@ -19,6 +19,7 @@ package backends
 import (
 	"context"
 	"fmt"
+	"k8s.io/ingress-gce/pkg/composite"
 	"net/http"
 	"reflect"
 	"testing"
@@ -100,7 +101,12 @@ func TestSync(t *testing.T) {
 			beName := sp.BackendName(defaultNamer)
 
 			// Check that the new backend has the right port
-			be, err := syncer.backendPool.Get(beName, features.VersionFromServicePort(&sp), features.ScopeFromServicePort(&sp))
+			scope := features.ScopeFromServicePort(&sp)
+			key, err := composite.CreateKey(fakeGCE, beName, scope)
+			if err != nil {
+				t.Fatalf("Could not create key for backend %s: %v", beName, err)
+			}
+			be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&sp))
 			if err != nil {
 				t.Fatalf("Did not find expected backend with port %v", sp.NodePort)
 			}
@@ -132,7 +138,12 @@ func TestSyncUpdateHTTPS(t *testing.T) {
 	syncer.Sync([]utils.ServicePort{p})
 	beName := p.BackendName(defaultNamer)
 
-	be, err := syncer.backendPool.Get(beName, features.VersionFromServicePort(&p), features.ScopeFromServicePort(&p))
+	scope := features.ScopeFromServicePort(&p)
+	key, err := composite.CreateKey(fakeGCE, beName, scope)
+	if err != nil {
+		t.Fatalf("Could not create key for backend %s: %v", beName, err)
+	}
+	be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&p))
 	if err != nil {
 		t.Fatalf("Unexpected err: %v", err)
 	}
@@ -151,7 +162,7 @@ func TestSyncUpdateHTTPS(t *testing.T) {
 	p.Protocol = annotations.ProtocolHTTPS
 	syncer.Sync([]utils.ServicePort{p})
 
-	be, err = syncer.backendPool.Get(beName, features.VersionFromServicePort(&p), features.ScopeFromServicePort(&p))
+	be, err = syncer.backendPool.Get(key, features.VersionFromServicePort(&p))
 	if err != nil {
 		t.Fatalf("Unexpected err retrieving backend service after update: %v", err)
 	}
@@ -176,7 +187,13 @@ func TestSyncUpdateHTTP2(t *testing.T) {
 	syncer.Sync([]utils.ServicePort{p})
 	beName := p.BackendName(defaultNamer)
 
-	be, err := syncer.backendPool.Get(beName, features.VersionFromServicePort(&p), features.ScopeFromServicePort(&p))
+	// Check that the new backend has the right port
+	scope := features.ScopeFromServicePort(&p)
+	key, err := composite.CreateKey(fakeGCE, beName, scope)
+	if err != nil {
+		t.Fatalf("Could not create key for backend %s: %v", beName, err)
+	}
+	be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&p))
 	if err != nil {
 		t.Fatalf("Unexpected err: %v", err)
 	}
@@ -195,7 +212,7 @@ func TestSyncUpdateHTTP2(t *testing.T) {
 	p.Protocol = annotations.ProtocolHTTP2
 	syncer.Sync([]utils.ServicePort{p})
 
-	beBeta, err := syncer.backendPool.Get(beName, features.VersionFromServicePort(&p), features.ScopeFromServicePort(&p))
+	beBeta, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&p))
 	if err != nil {
 		t.Fatalf("Unexpected err retrieving backend service after update: %v", err)
 	}
@@ -418,7 +435,12 @@ func TestSyncNEG(t *testing.T) {
 	// GC should garbage collect the Backend on the old naming schema
 	syncer.GC([]utils.ServicePort{svcPort})
 
-	bs, err := syncer.backendPool.Get(nodePortName, features.VersionFromServicePort(&svcPort), features.ScopeFromServicePort(&svcPort))
+	scope := features.ScopeFromServicePort(&svcPort)
+	key, err := composite.CreateKey(fakeGCE, nodePortName, scope)
+	if err != nil {
+		t.Fatalf("Could not create key for backend %s: %v", nodePortName, err)
+	}
+	bs, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&svcPort))
 	if err == nil {
 		t.Fatalf("Expected not to get BackendService with name %v, got: %+v", nodePortName, bs)
 	}
@@ -491,7 +513,13 @@ func TestEnsureBackendServiceProtocol(t *testing.T) {
 				fmt.Sprintf("Updating Port:%v Protocol:%v to Port:%v Protocol:%v", oldPort.NodePort, oldPort.Protocol, newPort.NodePort, newPort.Protocol),
 				func(t *testing.T) {
 					syncer.Sync([]utils.ServicePort{oldPort})
-					be, err := syncer.backendPool.Get(oldPort.BackendName(defaultNamer), features.VersionFromServicePort(&oldPort), features.ScopeFromServicePort(&oldPort))
+					scope := features.ScopeFromServicePort(&oldPort)
+					name := oldPort.BackendName(defaultNamer)
+					key, err := composite.CreateKey(fakeGCE, name, scope)
+					if err != nil {
+						t.Fatalf("Could not create key for backend %s: %v", name, err)
+					}
+					be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&oldPort))
 					if err != nil {
 						t.Fatalf("%v", err)
 					}
@@ -535,7 +563,13 @@ func TestEnsureBackendServiceDescription(t *testing.T) {
 				fmt.Sprintf("Updating Port:%v Protocol:%v to Port:%v Protocol:%v", oldPort.NodePort, oldPort.Protocol, newPort.NodePort, newPort.Protocol),
 				func(t *testing.T) {
 					syncer.Sync([]utils.ServicePort{oldPort})
-					be, err := syncer.backendPool.Get(oldPort.BackendName(defaultNamer), features.VersionFromServicePort(&oldPort), features.ScopeFromServicePort(&oldPort))
+					scope := features.ScopeFromServicePort(&oldPort)
+					name := oldPort.BackendName(defaultNamer)
+					key, err := composite.CreateKey(fakeGCE, name, scope)
+					if err != nil {
+						t.Fatalf("Could not create key for backend %s: %v", name, err)
+					}
+					be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&oldPort))
 					if err != nil {
 						t.Fatalf("%v", err)
 					}
@@ -563,7 +597,13 @@ func TestEnsureBackendServiceHealthCheckLink(t *testing.T) {
 
 	p := utils.ServicePort{NodePort: 80, Protocol: annotations.ProtocolHTTP, ID: utils.ServicePortID{Port: intstr.FromInt(1)}}
 	syncer.Sync([]utils.ServicePort{p})
-	be, err := syncer.backendPool.Get(p.BackendName(defaultNamer), features.VersionFromServicePort(&p), features.ScopeFromServicePort(&p))
+	scope := features.ScopeFromServicePort(&p)
+	name := p.BackendName(defaultNamer)
+	key, err := composite.CreateKey(fakeGCE, name, scope)
+	if err != nil {
+		t.Fatalf("Could not create key for backend %s: %v", name, err)
+	}
+	be, err := syncer.backendPool.Get(key, features.VersionFromServicePort(&p))
 	if err != nil {
 		t.Fatalf("%v", err)
 	}

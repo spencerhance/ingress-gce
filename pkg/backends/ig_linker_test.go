@@ -16,6 +16,7 @@ package backends
 import (
 	"context"
 	"k8s.io/ingress-gce/pkg/backends/features"
+	"k8s.io/ingress-gce/pkg/composite"
 	"net/http"
 	"testing"
 
@@ -123,6 +124,10 @@ func TestLinkWithCreationModeError(t *testing.T) {
 				t.Fatalf("Wrong balancing mode, expected %v got %v", modes[(i+1)%len(modes)], b.BalancingMode)
 			}
 		}
-		linker.backendPool.Delete(sp.BackendName(defaultNamer), features.VersionFromServicePort(&sp), features.ScopeFromServicePort(&sp))
+		key, err := composite.CreateKey(fakeGCE, be.Name, features.ScopeFromServicePort(&sp))
+		if err != nil {
+			t.Fatalf("error creating key for BackendService %v: %v", be, err)
+		}
+		linker.backendPool.Delete(key, features.VersionFromServicePort(&sp))
 	}
 }

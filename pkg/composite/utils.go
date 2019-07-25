@@ -117,7 +117,7 @@ func ListAllBackendServices(gceCloud *gce.Cloud) ([]*BackendService, error) {
 	for i := range versions {
 		list, err := ListBackendServices(gceCloud, keys[i], versions[i])
 		if err != nil {
-			return nil, fmt.Errorf("error listing all urlmaps: %v", err)
+			return nil, fmt.Errorf("error listing all backend services: %v", err)
 		}
 		for _, bs := range list {
 			resultMap[bs.SelfLink] = bs

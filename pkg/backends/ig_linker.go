@@ -96,7 +96,7 @@ func (l *instanceGroupLinker) Link(sp utils.ServicePort, groups []GroupKey) erro
 	// ig_linker only supports L7 HTTP(s) External Load Balancer
 	// Hardcoded here since IGs are not supported for non GA-Global right now
 	// TODO(shance): find a way to remove hardcoded values
-	be, err := l.backendPool.Get(sp.BackendName(l.namer), meta.VersionGA, meta.Global)
+	be, err := l.backendPool.Get(meta.GlobalKey(sp.BackendName(l.namer)), meta.VersionGA)
 	if err != nil {
 		return err
 	}

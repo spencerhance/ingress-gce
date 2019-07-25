@@ -18,9 +18,6 @@ package firewalls
 
 import (
 	"fmt"
-	"k8s.io/ingress-gce/pkg/controller"
-	"k8s.io/ingress-gce/pkg/flags"
-	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"reflect"
 	"time"
 
@@ -32,7 +29,10 @@ import (
 	"k8s.io/ingress-gce/pkg/annotations"
 	"k8s.io/ingress-gce/pkg/common/operator"
 	"k8s.io/ingress-gce/pkg/context"
+	"k8s.io/ingress-gce/pkg/controller"
 	"k8s.io/ingress-gce/pkg/controller/translator"
+	"k8s.io/ingress-gce/pkg/flags"
+	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"k8s.io/ingress-gce/pkg/utils"
 	"k8s.io/klog"
 	"k8s.io/legacy-cloud-providers/gce"
