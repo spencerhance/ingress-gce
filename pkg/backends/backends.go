@@ -14,6 +14,7 @@ limitations under the License.
 package backends
 
 import (
+	"errors"
 	"fmt"
 	"k8s.io/ingress-gce/pkg/flags"
 	"net/http"
@@ -176,16 +177,12 @@ func (b *Backends) Health(name string, version meta.Version, scope meta.KeyType)
 
 	// TODO: Look at more than one backend's status
 	// TODO: Include port, ip in the status, since it's in the health info.
-	// TODO (shance) convert to composite types
-	var hs *compute.BackendServiceGroupHealth
-	switch scope {
-	case meta.Global:
-		hs, err = b.cloud.GetGlobalBackendServiceHealth(name, be.Backends[0].Group)
-	case meta.Regional:
-		hs, err = b.cloud.GetRegionalBackendServiceHealth(name, b.cloud.Region(), be.Backends[0].Group)
-	default:
-		return "Unknown", fmt.Errorf("invalid scope for Health(): %s", scope)
+	key, err := composite.CreateKey(b.cloud, name, scope)
+	if err != nil {
+		return fmt.Errorf("error getting key: %v", err)
 	}
+
+	hs, err := composite.GetBackendServiceHealth(b.cloud, key, version, be.Backends[0].Group)
 
 	if err != nil || len(hs.HealthStatus) == 0 || hs.HealthStatus[0] == nil {
 		return "Unknown", fmt.Errorf("error getting health for backend %q: %v", name, err)

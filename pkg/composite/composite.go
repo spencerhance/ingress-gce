@@ -151,3 +151,42 @@ func SetProxyForForwardingRule(gceCloud *gce.Cloud, key *meta.Key, forwardingRul
 		}
 	}
 }
+
+func GetBackendServiceHealth(gceCloud *gce.Cloud, key *meta.Key, version meta.Version, groupLink string) (*BackendServiceGroupHealth, error) {
+	ctx, cancel := cloud.ContextWithCallTimeout()
+	defer cancel()
+	mc := metrics.NewMetricContext("BackendService", "get_health", key.Region, key.Zone, string(version))
+
+	var gceObj interface{}
+	var err error
+	switch version {
+	case meta.VersionAlpha:
+		groupRef := &computealpha.ResourceGroupReference{Group: groupLink}
+		switch key.Type() {
+		case meta.Regional:
+			klog.V(3).Infof("Getting health for alpha region BackendService %v, %q", key.Name, groupLink)
+			gceObj, err = gceCloud.Compute().AlphaRegionBackendServices().GetHealth(ctx, key, groupRef)
+		default:
+			klog.V(3).Infof("Getting health for alpha BackendService %v, %q", key.Name, groupLink)
+			gceObj, err = gceCloud.Compute().AlphaBackendServices().GetHealth(ctx, key, groupRef)
+		}
+	case meta.VersionBeta:
+		groupRef := &computebeta.ResourceGroupReference{Group: groupLink}
+		klog.V(3).Infof("Getting health for beta BackendService %v, %q", key.Name, groupLink)
+		gceObj, err = gceCloud.Compute().BetaBackendServices().GetHealth(ctx, key, groupRef)
+	default:
+		groupRef := &compute.ResourceGroupReference{Group: groupLink}
+		klog.V(3).Infof("Getting health for ga BackendService %v, %q", key.Name, groupLink)
+		gceObj, err = gceCloud.Compute().BackendServices().GetHealth(ctx, key, groupRef)
+	}
+	if err != nil {
+		return nil, mc.Observe(err)
+	}
+	compositeType, err := ToBackendService(gceObj)
+	if err != nil {
+		return nil, err
+	}
+
+	compositeType.Version = version
+	return compositeType, nil
+}
