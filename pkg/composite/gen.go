@@ -2619,19 +2619,26 @@ func GetBackendService(gceCloud *gce.Cloud, key *meta.Key, version meta.Version)
 	return compositeType, nil
 }
 
-func ListBackendServices(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*BackendService, error) {
+func ListBackendServices(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*BackendService, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("BackendService", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("BackendService", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region BackendService")
-			gceObjs, err = gceCloud.Compute().AlphaRegionBackendServices().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionBackendServices().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha BackendService")
 			gceObjs, err = gceCloud.Compute().AlphaBackendServices().List(ctx, filter.None)
@@ -2839,37 +2846,44 @@ func GetForwardingRule(gceCloud *gce.Cloud, key *meta.Key, version meta.Version)
 	return compositeType, nil
 }
 
-func ListForwardingRules(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*ForwardingRule, error) {
+func ListForwardingRules(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*ForwardingRule, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("ForwardingRule", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("ForwardingRule", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region ForwardingRule")
-			gceObjs, err = gceCloud.Compute().AlphaForwardingRules().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaForwardingRules().List(ctx, scopeName.Name, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha ForwardingRule")
 			gceObjs, err = gceCloud.Compute().AlphaGlobalForwardingRules().List(ctx, filter.None)
 		}
 	case meta.VersionBeta:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing beta region ForwardingRule")
-			gceObjs, err = gceCloud.Compute().BetaForwardingRules().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().BetaForwardingRules().List(ctx, scopeName.Name, filter.None)
 		default:
 			klog.V(3).Infof("Listing beta ForwardingRule")
 			gceObjs, err = gceCloud.Compute().BetaGlobalForwardingRules().List(ctx, filter.None)
 		}
 	default:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing ga region ForwardingRule")
-			gceObjs, err = gceCloud.Compute().ForwardingRules().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().ForwardingRules().List(ctx, scopeName.Name, filter.None)
 		default:
 			klog.V(3).Infof("Listing ga ForwardingRule")
 			gceObjs, err = gceCloud.Compute().GlobalForwardingRules().List(ctx, filter.None)
@@ -3116,19 +3130,26 @@ func GetHealthCheck(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) (*
 	return compositeType, nil
 }
 
-func ListHealthChecks(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*HealthCheck, error) {
+func ListHealthChecks(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*HealthCheck, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("HealthCheck", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("HealthCheck", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region HealthCheck")
-			gceObjs, err = gceCloud.Compute().AlphaRegionHealthChecks().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionHealthChecks().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha HealthCheck")
 			gceObjs, err = gceCloud.Compute().AlphaHealthChecks().List(ctx, filter.None)
@@ -3311,19 +3332,26 @@ func GetSslCertificate(gceCloud *gce.Cloud, key *meta.Key, version meta.Version)
 	return compositeType, nil
 }
 
-func ListSslCertificates(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*SslCertificate, error) {
+func ListSslCertificates(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*SslCertificate, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("SslCertificate", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("SslCertificate", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region SslCertificate")
-			gceObjs, err = gceCloud.Compute().AlphaRegionSslCertificates().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionSslCertificates().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha SslCertificate")
 			gceObjs, err = gceCloud.Compute().AlphaSslCertificates().List(ctx, filter.None)
@@ -3506,19 +3534,26 @@ func GetTargetHttpProxy(gceCloud *gce.Cloud, key *meta.Key, version meta.Version
 	return compositeType, nil
 }
 
-func ListTargetHttpProxies(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*TargetHttpProxy, error) {
+func ListTargetHttpProxies(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*TargetHttpProxy, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("TargetHttpProxy", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("TargetHttpProxy", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region TargetHttpProxy")
-			gceObjs, err = gceCloud.Compute().AlphaRegionTargetHttpProxies().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionTargetHttpProxies().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha TargetHttpProxy")
 			gceObjs, err = gceCloud.Compute().AlphaTargetHttpProxies().List(ctx, filter.None)
@@ -3701,19 +3736,26 @@ func GetTargetHttpsProxy(gceCloud *gce.Cloud, key *meta.Key, version meta.Versio
 	return compositeType, nil
 }
 
-func ListTargetHttpsProxies(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*TargetHttpsProxy, error) {
+func ListTargetHttpsProxies(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*TargetHttpsProxy, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("TargetHttpsProxy", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("TargetHttpsProxy", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region TargetHttpsProxy")
-			gceObjs, err = gceCloud.Compute().AlphaRegionTargetHttpsProxies().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionTargetHttpsProxies().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha TargetHttpsProxy")
 			gceObjs, err = gceCloud.Compute().AlphaTargetHttpsProxies().List(ctx, filter.None)
@@ -3931,19 +3973,26 @@ func GetUrlMap(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) (*UrlMa
 	return compositeType, nil
 }
 
-func ListUrlMaps(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*UrlMap, error) {
+func ListUrlMaps(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*UrlMap, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()
-	mc := compositemetrics.NewMetricContext("UrlMap", "get", key.Region, key.Zone, string(version))
+
+	var region, zone string
+	if scopeName.Scope == meta.Regional {
+		region = scopeName.Name
+	} else if scopeName.Scope == meta.Zonal {
+		zone = scopeName.Name
+	}
+	mc := compositemetrics.NewMetricContext("UrlMap", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
 			klog.V(3).Infof("Listing alpha region UrlMap")
-			gceObjs, err = gceCloud.Compute().AlphaRegionUrlMaps().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().AlphaRegionUrlMaps().List(ctx, region, filter.None)
 		default:
 			klog.V(3).Infof("Listing alpha UrlMap")
 			gceObjs, err = gceCloud.Compute().AlphaUrlMaps().List(ctx, filter.None)

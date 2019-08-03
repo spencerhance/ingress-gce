@@ -350,37 +350,44 @@ func Get{{.Name}}(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) (*{{
   return compositeType, nil
 }
 
-func List{{.GetCloudProviderName}}(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*{{.Name}}, error) {
+func List{{.GetCloudProviderName}}(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*{{.Name}}, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
-	defer cancel()	
-  mc := compositemetrics.NewMetricContext("{{.Name}}", "get", key.Region, key.Zone, string(version))
+	defer cancel()
+
+  var region, zone string
+  if scopeName.Scope == meta.Regional {
+    region = scopeName.Name
+  } else if scopeName.Scope == meta.Zonal {
+    zone = scopeName.Name
+  }
+  mc := compositemetrics.NewMetricContext("{{.Name}}", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
  			klog.V(3).Infof("Listing alpha region {{.Name}}")
-			gceObjs, err = gceCloud.Compute().Alpha{{.GetCloudProviderName}}().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().Alpha{{.GetCloudProviderName}}().List(ctx, scopeName.Name, filter.None)
 		default:
  			klog.V(3).Infof("Listing alpha {{.Name}}")
 			gceObjs, err = gceCloud.Compute().AlphaGlobal{{.GetCloudProviderName}}().List(ctx, filter.None)
 		}
 	case meta.VersionBeta:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
  			klog.V(3).Infof("Listing beta region {{.Name}}")
-			gceObjs, err = gceCloud.Compute().Beta{{.GetCloudProviderName}}().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().Beta{{.GetCloudProviderName}}().List(ctx, scopeName.Name, filter.None)
 		default:
  			klog.V(3).Infof("Listing beta {{.Name}}")
 			gceObjs, err = gceCloud.Compute().BetaGlobal{{.GetCloudProviderName}}().List(ctx, filter.None)
 		}
 	default:
-		switch key.Type() {
+		switch scopeName.Scope {
 		case meta.Regional:
  			klog.V(3).Infof("Listing ga region {{.Name}}")
-			gceObjs, err = gceCloud.Compute().{{.GetCloudProviderName}}().List(ctx, key.Region, filter.None)
+			gceObjs, err = gceCloud.Compute().{{.GetCloudProviderName}}().List(ctx, scopeName.Name, filter.None)
 		default:
  			klog.V(3).Infof("Listing ga {{.Name}}")
 			gceObjs, err = gceCloud.Compute().Global{{.GetCloudProviderName}}().List(ctx, filter.None)
@@ -582,19 +589,26 @@ func Get{{.Name}}(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) (*{{
   return compositeType, nil
 }
 
-func List{{.GetCloudProviderName}}(gceCloud *gce.Cloud, key *meta.Key, version meta.Version) ([]*{{.Name}}, error) {
+func List{{.GetCloudProviderName}}(gceCloud *gce.Cloud, scopeName *ScopeName, version meta.Version) ([]*{{.Name}}, error) {
 	ctx, cancel := cloudprovider.ContextWithCallTimeout()
 	defer cancel()	
-  mc := compositemetrics.NewMetricContext("{{.Name}}", "get", key.Region, key.Zone, string(version))
+
+  var region, zone string
+  if scopeName.Scope == meta.Regional {
+    region = scopeName.Name
+  } else if scopeName.Scope == meta.Zonal {
+    zone = scopeName.Name
+  }
+  mc := compositemetrics.NewMetricContext("{{.Name}}", "get", region, zone, string(version))
 
 	var gceObjs interface{}
 	var err error
 	switch version {
 	case meta.VersionAlpha:
-		switch key.Type() {
+		switch scopeName.Scope {
 			case meta.Regional:
 		  	klog.V(3).Infof("Listing alpha region {{.Name}}")
-				gceObjs, err = gceCloud.Compute().AlphaRegion{{.GetCloudProviderName}}().List(ctx, key.Region, filter.None)
+				gceObjs, err = gceCloud.Compute().AlphaRegion{{.GetCloudProviderName}}().List(ctx, region, filter.None)
 			default:
 		  	klog.V(3).Infof("Listing alpha {{.Name}}")
 				gceObjs, err = gceCloud.Compute().Alpha{{.GetCloudProviderName}}().List(ctx, filter.None)

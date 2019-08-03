@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This file includes all the handwritten functions from the composite library
+// This file includes all the handwritten code from the composite library
 package composite
 
 import (
@@ -27,6 +27,25 @@ import (
 	"k8s.io/klog"
 	"k8s.io/legacy-cloud-providers/gce"
 )
+
+// Scope name is used to simplify List() calls
+type ScopeName struct {
+	Scope meta.KeyType
+	// Name refers to a zone name or region name
+	Name string
+}
+
+func RegionalScopeName(region string) *ScopeName {
+	return &ScopeName{Scope: meta.Regional, Name: region}
+}
+
+func ZonalScopeName(zone string) *ScopeName {
+	return &ScopeName{Scope: meta.Zonal, Name: zone}
+}
+
+func GlobalScopeName() *ScopeName {
+	return &ScopeName{}
+}
 
 // TODO: (shance) below functions should be generated
 // SetUrlMapForTargetHttpsProxy() sets the UrlMap for a target https proxy
