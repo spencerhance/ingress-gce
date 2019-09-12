@@ -97,6 +97,7 @@ type NetworkEndpoints struct {
 // GCLB contains the resources for a load balancer.
 type GCLB struct {
 	VIP string
+	Region string
 
 	ForwardingRule       map[meta.Key]*ForwardingRule
 	TargetHTTPProxy      map[meta.Key]*TargetHTTPProxy
@@ -108,9 +109,10 @@ type GCLB struct {
 }
 
 // NewGCLB returns an empty GCLB.
-func NewGCLB(vip string) *GCLB {
+func NewGCLB(vip, region string) *GCLB {
 	return &GCLB{
 		VIP:                  vip,
+		Region:								region,
 		ForwardingRule:       map[meta.Key]*ForwardingRule{},
 		TargetHTTPProxy:      map[meta.Key]*TargetHTTPProxy{},
 		TargetHTTPSProxy:     map[meta.Key]*TargetHTTPSProxy{},
@@ -475,34 +477,87 @@ func hasBetaResource(resourceType string, validators []FeatureValidator) bool {
 //	return gclb, err
 //}
 
+func CreateGclbKey(scope meta.KeyType, name string, region string) *meta.Key {
+	switch scope {
+	case meta.Regional:
+		return meta.RegionalKey(name, region)
+	default:
+		return meta.GlobalKey(name)
+	}
+}
 
-func getGclbForwardingRules(gclb *GCLB, validators []FeatureValidator, vip string) {
+func getGclbForwardingRules(c cloud.Cloud, ctx context.Context, gclb *GCLB, validators []FeatureValidator, vip string) error {
 	for _, validator := range validators {
 		wantedVersion := validator.ResourceVersions().ForwardingRule
 		wantedScope := validator.Scope()
-
-		// Skip if already found
-		if
-
 
 		switch wantedVersion {
 		case meta.VersionAlpha:
 			switch wantedScope {
 			case meta.Global:
+				frs, err := c.AlphaGlobalForwardingRules().List(ctx, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].Alpha = fr
+				}
 			case meta.Regional:
+				frs, err := c.AlphaForwardingRules().List(ctx, gclb.Region, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].Alpha = fr
+				}
 			}
 		case meta.VersionBeta:
 			switch wantedScope {
 			case meta.Global:
+				frs, err := c.BetaGlobalForwardingRules().List(ctx, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].Beta = fr
+				}
 			case meta.Regional:
+				frs, err := c.BetaForwardingRules().List(ctx, gclb.Region, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].Beta = fr
+				}
 			}
 		case meta.VersionGA:
 			switch wantedScope {
 			case meta.Global:
+				frs, err := c.GlobalForwardingRules().List(ctx, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].GA = fr
+				}
 			case meta.Regional:
+				frs, err := c.ForwardingRules().List(ctx, gclb.Region, filter.None)
+				if err != nil {
+					return err
+				}
+				for _, fr := range frs {
+					key := CreateGclbKey(wantedScope, fr.Name, gclb.Region)
+					gclb.ForwardingRule[*key].GA = fr
+				}
 			}
 		}
 	}
+	return nil
 }
 
 func getGclbUrlMaps(gclb *GCLB, validators []FeatureValidator) {
@@ -633,10 +688,12 @@ func getGclbBackendServices(gclb *GCLB, validators []FeatureValidator) {
 
 // GCLBForVIP retrieves all of the resources associated with the GCLB for a
 // given VIP.
-func GCLBForVIP(ctx context.Context, c cloud.Cloud, vip string, validators []FeatureValidator) (*GCLB, error) {
-	gclb := NewGCLB(vip)
+func GCLBForVIP(ctx context.Context, c cloud.Cloud, vip string, region string, validators []FeatureValidator) (*GCLB, error) {
+	gclb := NewGCLB(vip, region)
 
-	getGclbForwardingRules(gclb, validators, vip)
+	if err := getGclbForwardingRules(c, ctx, gclb, validators, vip); err != nil {
+		return nil, err
+	}
 	getGclbTargetProxies(gclb, validators)
 	getGclbUrlMaps(gclb, validators)
 	getGclbBackendServices(gclb, validators)
