@@ -475,10 +475,174 @@ func hasBetaResource(resourceType string, validators []FeatureValidator) bool {
 //	return gclb, err
 //}
 
+
+func getGclbForwardingRules(gclb *GCLB, validators []FeatureValidator, vip string) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().ForwardingRule
+		wantedScope := validator.Scope()
+
+		// Skip if already found
+		if
+
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+func getGclbUrlMaps(gclb *GCLB, validators []FeatureValidator) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().UrlMap
+		wantedScope := validator.Scope()
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+func getGclbTargetProxies(gclb *GCLB, validators []FeatureValidator) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().ForwardingRule
+		wantedScope := validator.Scope()
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+func getGclbTargetHttpProxy(gclb *GCLB, validators []FeatureValidator) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().ForwardingRule
+		wantedScope := validator.Scope()
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+func getGclbTargetHttpsProxy(gclb *GCLB, validators []FeatureValidator) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().ForwardingRule
+		wantedScope := validator.Scope()
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+func getGclbBackendServices(gclb *GCLB, validators []FeatureValidator) {
+	for _, validator := range validators {
+		wantedVersion := validator.ResourceVersions().ForwardingRule
+		wantedScope := validator.Scope()
+
+		switch wantedVersion {
+		case meta.VersionAlpha:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionBeta:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		case meta.VersionGA:
+			switch wantedScope {
+			case meta.Global:
+			case meta.Regional:
+			}
+		}
+	}
+}
+
+
 // GCLBForVIP retrieves all of the resources associated with the GCLB for a
 // given VIP.
 func GCLBForVIP(ctx context.Context, c cloud.Cloud, vip string, validators []FeatureValidator) (*GCLB, error) {
 	gclb := NewGCLB(vip)
+
+	getGclbForwardingRules(gclb, validators, vip)
+	getGclbTargetProxies(gclb, validators)
+	getGclbUrlMaps(gclb, validators)
+	getGclbBackendServices(gclb, validators)
+
+
+
 
 
 

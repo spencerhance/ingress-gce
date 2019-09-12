@@ -43,6 +43,10 @@ type ResourceVersions struct {
 	// TODO(shance): find a way to remove these
 	BackendService meta.Version
 	HealthCheck    meta.Version
+
+	// This is *only* used for e2e tests
+	// TODO(shance): find a way to remove this
+	NetworkEndpointGroup meta.Version
 }
 
 var (
