@@ -19,6 +19,7 @@ package features
 import (
 	"context"
 	"fmt"
+	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"net/http"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
@@ -114,11 +115,16 @@ func (v *securityPolicyValidator) CheckResponse(host, path string, resp *http.Re
 	return fuzz.CheckResponseContinue, nil
 }
 
-// HasBetaResource implements Feature. SecurityPolicy requires Beta
+// ResourceVersions implements Feature. SecurityPolicy requires Beta
 // resource.
-func (v *securityPolicyValidator) HasBetaResource(resourceType string) bool {
-	if resourceType == "backendService" {
-		return true
+func (v *securityPolicyValidator) ResourceVersions() *features.ResourceVersions {
+	return &features.ResourceVersions{
+		meta.VersionGA,
+		meta.VersionGA,
+		meta.VersionGA,
+		meta.VersionGA,
+		meta.VersionGA,
+		meta.VersionBeta, // Only BS is beta
+		meta.VersionGA,
 	}
-	return false
 }

@@ -17,6 +17,8 @@ limitations under the License.
 package fuzz
 
 import (
+	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
+	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"net/http"
 
 	"k8s.io/api/networking/v1beta1"
@@ -68,9 +70,11 @@ type FeatureValidator interface {
 	// request. If (_, err) is returned, then the response is considered to be
 	// an error.
 	CheckResponse(host, path string, resp *http.Response, body []byte) (CheckResponseAction, error)
-
-	HasAlphaResource(resourceType string) bool
-	HasBetaResource(resourceType string) bool
+	// ResourceVersions returns the resource versions of the feature
+	ResourceVersions() *features.ResourceVersions
+	// TODO(shance): Replace with ResourceScopes once it's added to features
+	// Scope returns the scope of the feature (e.g. global)
+	Scope() meta.KeyType
 }
 
 // NullValidator is a feature that does nothing. Embed this object to reduce the
@@ -92,12 +96,12 @@ func (*NullValidator) CheckResponse(string, string, *http.Response, []byte) (Che
 	return CheckResponseContinue, nil
 }
 
-// HasAlphaResource implements Feature.
-func (*NullValidator) HasAlphaResource(resourceType string) bool {
-	return false
+// ResourceVersions implements Feature
+func (*NullValidator) ResourceVersions() *features.ResourceVersions {
+	return features.GAResourceVersions
 }
 
-// HasBetaResource implements Feature.
-func (*NullValidator) HasBetaResource(resourceType string) bool {
-	return false
+// Scope implements Feature
+func (*NullValidator) Scope() meta.KeyType {
+	return meta.Global
 }

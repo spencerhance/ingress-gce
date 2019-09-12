@@ -17,8 +17,10 @@ limitations under the License.
 package features
 
 import (
+	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
 	"k8s.io/api/networking/v1beta1"
 	"k8s.io/ingress-gce/pkg/fuzz"
+	"k8s.io/ingress-gce/pkg/loadbalancers/features"
 	"net/http"
 )
 
@@ -62,4 +64,14 @@ func (v *ILBValidator) ConfigureAttributes(env fuzz.ValidatorEnv, ing *v1beta1.I
 // CheckResponse implements fuzz.FeatureValidator.
 func (v *ILBValidator) CheckResponse(host, path string, resp *http.Response, body []byte) (fuzz.CheckResponseAction, error) {
 	return fuzz.CheckResponseContinue, nil
+}
+
+// ResourceVersions implements fuzz.FeatureValidator
+func (v *ILBValidator) ResourceVersions() *features.ResourceVersions {
+	return features.L7ILBVersions()
+}
+
+// Scope implements fuzz.FeatureValidator
+func (v *ILBValidator) Scope() meta.KeyType {
+	return meta.Regional
 }
