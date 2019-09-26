@@ -20,6 +20,7 @@ import (
 	"k8s.io/api/networking/v1beta1"
 	"k8s.io/ingress-gce/pkg/fuzz"
 	"net/http"
+	"time"
 )
 
 // ILB is an internal load balancer
@@ -56,6 +57,9 @@ func (v *ILBValidator) ConfigureAttributes(env fuzz.ValidatorEnv, ing *v1beta1.I
 	// Capture the env for use later in CheckResponse.
 	v.ing = ing
 	v.env = env
+
+	a.RequestTimeout = 3 * time.Second
+
 	return nil
 }
 
