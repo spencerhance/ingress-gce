@@ -118,6 +118,10 @@ func (s *backendSyncer) ensureBackendService(sp utils.ServicePort) error {
 		needUpdate = features.EnsureDraining(sp, be) || needUpdate
 		needUpdate = features.EnsureAffinity(sp, be) || needUpdate
 		needUpdate = features.EnsureCustomRequestHeaders(sp, be) || needUpdate
+
+		if flags.F.EnableL7Ilb && sp.L7ILBEnabled {
+			needUpdate = features.EnsureLocalityLbPolicy(sp, be) || needUpdate
+		}
 	}
 
 	if needUpdate {

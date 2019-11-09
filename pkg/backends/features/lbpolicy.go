@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Kubernetes Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import (
 	"k8s.io/klog"
 )
 
-//
+// EnsureLocalityLbPolicy Ensures that the localityLbPolicy on the BackendConfig is applied to the BackendService
 func EnsureLocalityLbPolicy(sp utils.ServicePort, be *composite.BackendService) bool {
-	if sp.BackendConfig.Spec.TrafficDirectorConfig.LocalityLbPolicy == "" {
+	if sp.BackendConfig.Spec.TrafficManagement == nil || sp.BackendConfig.Spec.TrafficManagement.LocalityLbPolicy == "" {
 		return false
 	}
 
-	if be.LocalityLbPolicy != sp.BackendConfig.Spec.TrafficDirectorConfig.LocalityLbPolicy {
+	if be.LocalityLbPolicy != sp.BackendConfig.Spec.TrafficManagement.LocalityLbPolicy {
 		applyLocalityLbPolicy(sp, be)
 		klog.V(2).Infof("Updated LocalityLbPolicy settings for service %v/%v.", sp.ID.Service.Namespace, sp.ID.Service.Name)
 		return true
@@ -36,6 +36,7 @@ func EnsureLocalityLbPolicy(sp utils.ServicePort, be *composite.BackendService) 
 	return false
 }
 
+// applyLocalityLbPolicy applies the localityLbPolicy on the BackendConfig to the BackendService
 func applyLocalityLbPolicy(sp utils.ServicePort, be *composite.BackendService) {
-	be.LocalityLbPolicy = sp.BackendConfig.Spec.TrafficDirectorConfig.LocalityLbPolicy
+	be.LocalityLbPolicy = sp.BackendConfig.Spec.TrafficManagement.LocalityLbPolicy
 }
