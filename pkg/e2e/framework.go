@@ -143,6 +143,14 @@ func (f *Framework) SanityCheck() error {
 		klog.Errorf("Error accessing Kubernetes API: %v", err)
 		return err
 	}
+
+	klog.V(2).Info("Checking for existence of BackendConfig CRD")
+	// TODO(shance): Update to v1 when v1beta1 is deprecated
+	if _, err := f.BackendConfigClient.CloudV1beta1().BackendConfigs("default").List(metav1.ListOptions{}); err != nil {
+		klog.Errorf("BackendConfig CRD does not exist: %v", err)
+		return err
+	}
+
 	klog.V(2).Infof("Checking connectivity with Google Cloud API (get project %q)", f.Project)
 	if _, err := f.Cloud.Projects().Get(context.Background(), f.Project); err != nil {
 		klog.Errorf("Error accessing compute API: %v", err)
