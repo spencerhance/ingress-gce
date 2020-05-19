@@ -52,6 +52,7 @@ func TestHealthCheck(t *testing.T) {
 				TimeoutSec:         pint64(3),
 				HealthyThreshold:   pint64(3),
 				UnhealthyThreshold: pint64(5),
+				Port:               pint64(100),
 				RequestPath:        pstring("/my-path"),
 			},
 		},
