@@ -164,7 +164,9 @@ func (h *HealthChecks) sync(hc *HealthCheck, bchcc *backendconfigv1.HealthCheckC
 	// Then, BackendConfig will override any fields that are explicitly set.
 	if bchcc != nil {
 		// BackendConfig healthcheck settings always take precedence.
-		hc.updateFromBackendConfig(bchcc)
+		if err := hc.updateFromBackendConfig(bchcc); err != nil {
+			return "", err
+		}
 	}
 
 	changes := calculateDiff(existingHC, hc, bchcc)
@@ -207,7 +209,9 @@ func (h *HealthChecks) createILB(hc *HealthCheck) error {
 func (h *HealthChecks) create(hc *HealthCheck, bchcc *backendconfigv1.HealthCheckConfig) error {
 	if bchcc != nil {
 		// BackendConfig healthcheck settings always take precedence.
-		hc.updateFromBackendConfig(bchcc)
+		if err := hc.updateFromBackendConfig(bchcc); err != nil {
+			return err
+		}
 	}
 	// special case ILB to avoid mucking with stable HC code
 	if hc.forILB {

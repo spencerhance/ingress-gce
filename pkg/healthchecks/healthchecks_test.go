@@ -909,11 +909,11 @@ func TestSyncServicePort(t *testing.T) {
 	chc.HttpHealthCheck.Port = 1234
 	// PortSpecification is set by the controller
 	chc.HttpHealthCheck.PortSpecification = "USE_FIXED_PORT"
-	cases = append(cases, &tc{desc: "create backendconfig all", sp: testSPs["HTTP-80-reg-bcall"], wantComputeHC: chc})
+	cases = append(cases, &tc{desc: "create backendconfig all", sp: testSPs["HTTP-80-neg-bcall"], wantComputeHC: chc})
 
 	i64 := func(i int64) *int64 { return &i }
 
-	// BackendConfig port
+	// BackendConfig port with Neg
 	chc = fixture.hc()
 	chc.HttpHealthCheck.Port = 1234
 	// PortSpecification is set by the controller
@@ -922,9 +922,23 @@ func TestSyncServicePort(t *testing.T) {
 		NodePort:      80,
 		Protocol:      annotations.ProtocolHTTP,
 		BackendNamer:  testNamer,
+		NEGEnabled: true,
 		BackendConfig: &backendconfigv1.BackendConfig{Spec: backendconfigv1.BackendConfigSpec{HealthCheck: &backendconfigv1.HealthCheckConfig{Port: i64(1234)}}},
 	}
 	cases = append(cases, &tc{desc: "create backendconfig port", sp: &sp, wantComputeHC: chc})
+
+	// BackendConfig port without neg
+	chc = fixture.hc()
+	chc.HttpHealthCheck.Port = 1234
+	// PortSpecification is set by the controller
+	chc.HttpHealthCheck.PortSpecification = "USE_FIXED_PORT"
+	spNoNeg := utils.ServicePort{
+		NodePort:      80,
+		Protocol:      annotations.ProtocolHTTP,
+		BackendNamer:  testNamer,
+		BackendConfig: &backendconfigv1.BackendConfig{Spec: backendconfigv1.BackendConfigSpec{HealthCheck: &backendconfigv1.HealthCheckConfig{Port: i64(1234)}}},
+	}
+	cases = append(cases, &tc{desc: "create backendconfig port", sp: &spNoNeg, wantComputeHC: chc, wantErr: true})
 
 	// BackendConfig neg
 	chc = fixture.neg()
@@ -1119,7 +1133,7 @@ func TestSyncServicePort(t *testing.T) {
 	cases = append(cases, &tc{
 		desc:          "update preserve backendconfig all",
 		setup:         fixture.setupExistingHCFunc(chc),
-		sp:            testSPs["HTTP-80-reg-bcall"],
+		sp:            testSPs["HTTP-80-neg-bcall"],
 		wantComputeHC: wantCHC,
 	})
 

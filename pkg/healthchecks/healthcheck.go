@@ -220,7 +220,7 @@ func (hc *HealthCheck) Version() meta.Version {
 	return meta.VersionGA
 }
 
-func (hc *HealthCheck) updateFromBackendConfig(c *backendconfigv1.HealthCheckConfig) {
+func (hc *HealthCheck) updateFromBackendConfig(c *backendconfigv1.HealthCheckConfig) error {
 	if c.CheckIntervalSec != nil {
 		hc.CheckIntervalSec = *c.CheckIntervalSec
 	}
@@ -240,10 +240,14 @@ func (hc *HealthCheck) updateFromBackendConfig(c *backendconfigv1.HealthCheckCon
 		hc.RequestPath = *c.RequestPath
 	}
 	if c.Port != nil {
+		if !hc.forNEG {
+			return errors.New("Cannot override HealthCheck Port on BackendConfig without enabling NetworkEndpointGroups")
+		}
 		hc.Port = *c.Port
 		// This override is necessary regardless of type
 		hc.PortSpecification = "USE_FIXED_PORT"
 	}
+	return nil
 }
 
 // fieldDiffs encapsulate which fields are different between health checks.
