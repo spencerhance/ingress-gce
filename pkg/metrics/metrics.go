@@ -35,7 +35,7 @@ const (
 )
 
 var (
-	metricsInterval = 10 * time.Minute
+	metricsInterval = 1 * time.Minute
 	ingressCount    = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "number_of_ingresses",
