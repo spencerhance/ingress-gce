@@ -94,11 +94,6 @@ func (l *L7) ensureRedirectURLMap() error {
 	name, namerSupported := l.namer.RedirectUrlMap()
 	expectedMap := t.ToRedirectUrlMap(env, l.Versions().UrlMap)
 
-	// Cannot enable for internal ingress
-	if expectedMap != nil && isL7ILB {
-		return fmt.Errorf("error: cannot enable HTTPS Redirects with L7 ILB")
-	}
-
 	// Cannot enable on older naming schemes
 	if !namerSupported {
 		if expectedMap != nil {

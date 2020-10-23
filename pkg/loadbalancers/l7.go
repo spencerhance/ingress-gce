@@ -25,7 +25,6 @@ import (
 	"k8s.io/ingress-gce/pkg/translator"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud/meta"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
@@ -145,11 +144,11 @@ func (l *L7) edgeHop() error {
 		return fmt.Errorf(invalidConfigErrorMessage)
 	}
 
-	// Check for invalid L7-ILB HTTPS config before attempting sync
-	if flags.F.EnableL7Ilb && utils.IsGCEL7ILBIngress(l.runtimeInfo.Ingress) && sslConfigured && l.runtimeInfo.AllowHTTP {
-		l.recorder.Eventf(l.runtimeInfo.Ingress, corev1.EventTypeWarning, "WillNotConfigureFrontend", "gce-internal Ingress class does not currently support both HTTP and HTTPS served on the same IP (kubernetes.io/ingress.allow-http must be false when using HTTPS).")
-		return fmt.Errorf("error invalid internal ingress https config")
-	}
+	//// Check for invalid L7-ILB HTTPS config before attempting sync
+	//if flags.F.EnableL7Ilb && utils.IsGCEL7ILBIngress(l.runtimeInfo.Ingress) && sslConfigured && l.runtimeInfo.AllowHTTP {
+	//	l.recorder.Eventf(l.runtimeInfo.Ingress, corev1.EventTypeWarning, "WillNotConfigureFrontend", "gce-internal Ingress class does not currently support both HTTP and HTTPS served on the same IP (kubernetes.io/ingress.allow-http must be false when using HTTPS).")
+	//	return fmt.Errorf("error invalid internal ingress https config")
+	//}
 
 	if err := l.ensureComputeURLMap(); err != nil {
 		return err
