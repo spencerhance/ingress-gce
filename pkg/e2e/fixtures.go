@@ -318,6 +318,10 @@ func NewGCPAddress(s *Sandbox, name string, region string) error {
 	} else {
 		addr.AddressType = "INTERNAL"
 		addr.Purpose = "SHARED_LOADBALANCER_VIP"
+		// We assume that the network/subnet share the exact same name.
+		// This is a limitation because we must set this to the cluster subnet, but it is not stored in the metadata server.
+		subnetID := cloud.ResourceID{ProjectID: s.f.Project, Resource: "subnetworks", Key: meta.RegionalKey(s.f.Network, s.f.Region)}
+		addr.Subnetwork = subnetID.SelfLink(meta.VersionGA)
 		if err := s.f.Cloud.Addresses().Insert(context.Background(), meta.RegionalKey(addr.Name, region), addr); err != nil {
 			return err
 		}
